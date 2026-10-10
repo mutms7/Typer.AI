@@ -9,6 +9,7 @@
     constructor() { this.words = new Map(); this.prefixes = new Map(); this.next = new Map(); this.ranks = new Map(); }
     index(documentText, title = '') {
       this.words.clear(); this.prefixes.clear(); this.next.clear(); this.ranks.clear();
+      this.cloudPhrases = [];
       const text = documentText.slice(0, 30000), ts = tokens(text);
       const addWord = (word, weight, heading) => {
         if (word.key.length < 3 || word.key.length > 64 || STOP.has(word.key)) return;
@@ -42,16 +43,30 @@
     }
     setRanks(ranks) {
       this.ranks.clear();
+      // Discard vocabulary from the previous background response, including on opt-out.
+      for (const [key, word] of this.words) if (word.inferred) this.words.delete(key);
+      this.cloudPhrases = [];
       for (const term of (Array.isArray(ranks) ? ranks : []).slice(0, 60)) {
-        if (typeof term !== 'string') continue;
-        for (const t of tokens(term)) if (this.words.has(t.key)) this.ranks.set(t.key, 1.4);
+        if (typeof term !== 'string' || term.length > 100 || !/^[\p{L}\p{N}]+(?:['’\-][\p{L}\p{N}]+)*(?: [\p{L}\p{N}]+(?:['’\-][\p{L}\p{N}]+)*){0,4}$/u.test(term)) continue;
+        this.cloudPhrases.push(term);
+        for (const t of tokens(term)) {
+          if (t.key.length < 3 || t.key.length > 64 || STOP.has(t.key)) continue;
+          if (!this.words.has(t.key)) this.words.set(t.key, { word: t.text, count: .5, heading: false, inferred: true });
+          this.ranks.set(t.key, 1.4);
+        }
+      }
+      this.prefixes.clear();
+      for (const [word] of this.words) for (let n = 1; n < word.length; n++) {
+        const prefix = word.slice(0, n);
+        if (!this.prefixes.has(prefix)) this.prefixes.set(prefix, []);
+        this.prefixes.get(prefix).push(word);
       }
     }
     predict(before, threshold = 0.82, after = '') {
       if (!before || /^[\p{L}\p{N}]/u.test(after)) return null;
       const match = before.match(/([\p{L}\p{N}]+(?:['’\-][\p{L}\p{N}]+)*)$/u);
       if (!match) return null; // No guesses after 'however,' or at blank line starts.
-      const partial = match[1], key = normalize(partial), candidates = this.prefixes.get(key);
+      const partial = match[1], key = normalize(partial), candidates = this.prefixes.get(key)?.filter(w => !this.words.get(w).inferred || key.length >= 3);
       if (!candidates?.length) return null;
       const preceding = tokens(before.slice(Math.max(0, before.length - 250), before.length - partial.length)).map(t => t.key);
       let evidence;
@@ -76,6 +91,12 @@
       else if (partial[0] === partial[0].toUpperCase()) word = word[0].toUpperCase() + word.slice(1);
       else word = normalize(word);
       let suffix = word.slice(partial.length), sequence = [...preceding, best.key], phraseConfidence = confidence;
+      // Related phrases are weaker evidence than repetitions in the actual draft.
+      const related = (this.cloudPhrases || []).filter(term => normalize(term).startsWith(best.key + ' '));
+      if (key.length >= 3 && threshold <= .78 && related.length === 1) {
+        suffix += related[0].slice(best.key.length);
+        return { suffix, confidence: Math.min(confidence, .78), source: 'cloud-ranked' };
+      }
       // Extend only with repeated, dominant continuation evidence. Threshold, not word-count UI.
       for (let step = 0; step < 7; step++) {
         let choices;

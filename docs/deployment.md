@@ -1,13 +1,13 @@
 # Deploy the owner-operated service
 
-Users don't provide API keys. The extension uses your backend, and only that backend can access your OpenAI key.
+Users don't provide API keys. The extension uses your backend, and only that backend can access your Gemini or OpenAI key.
 
 ## Single-instance backend
 
 Use Node.js 24 on a VM/container with persistent storage. A Dockerfile and Render blueprint are included. Render's persistent disk configuration is a paid plan; free hosting and free cloud inference are not promised. You can also host the Node service yourself.
 
 1. Copy `.env.example` to `.env` for local testing, or set equivalent environment variables in your host's secret manager.
-2. Set `OPENAI_API_KEY`, a random stable `IP_HASH_SECRET`, and `ALLOWED_ORIGINS`. Use exact origins, such as `https://mutms7.github.io` and `chrome-extension://YOUR_EXTENSION_ID`.
+2. Set `AI_PROVIDER=gemini`, `GEMINI_API_KEY`, `GEMINI_MODEL=gemini-3.5-flash-lite`, a random stable `IP_HASH_SECRET`, and `ALLOWED_ORIGINS`. Alternatively choose `AI_PROVIDER=openai` and `OPENAI_API_KEY`. Use exact origins, such as `https://mutms7.github.io` and `chrome-extension://YOUR_EXTENSION_ID`.
 3. Mount a persistent directory at `DATA_DIR`. Keep exactly one server instance for SQLite quotas.
 4. Set `HOST=0.0.0.0` in a container. Terminate TLS at your host or trusted reverse proxy.
 5. Configure daily/monthly request budgets, per-IP hourly limits and concurrency. Start conservatively. Failed attempts consume allowances.
@@ -38,10 +38,10 @@ To update the demo's downloaded extension, set the GitHub repository variable `T
 
 ## Budget limits
 
-Global attempt limits are durable across service restarts if the SQLite volume persists. They cap request count, not exact currency. Excerpts have a 6,000-character limit, titles 300 characters, and responses 600 output tokens. Model pricing changes and tokenization varies. Configure provider-side spending controls and alerts too.
+Global attempt limits are durable across service restarts if the SQLite volume persists. They cap request count, not exact currency. Excerpts have a 6,000-character limit, titles 300 characters, and responses at most 2,400 output tokens for Gemini or 600 for OpenAI. Model pricing changes and tokenization varies. Configure provider-side spending controls and alerts too.
 
 This no-account design trades stronger per-user identity for quick onboarding. Origin spoofing, IP rotation and shared networks are limitations. Before large-scale distribution, add abuse monitoring without document logging, managed edge rate limits, and a shared quota store if scaling horizontally.
 
 ## Publishing status
 
-The GitHub Pages demo is a static local-engine demo. It never uploads document text. A working backend must be provisioned separately for cloud-connected extension users. The initial public release works locally and can be used immediately without a backend.
+The GitHub Pages demo runs the local engine with cached, real Gemini vocabulary for its public examples. It never uploads visitor document text. Regenerate those public sample caches with `npm run demo:vocabulary` before publishing; the script reads your ignored `.env` and never writes the key. A working backend must be provisioned separately for cloud-connected extension users. The initial public release works locally and can be used immediately without a backend.

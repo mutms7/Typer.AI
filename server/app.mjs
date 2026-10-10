@@ -1,10 +1,10 @@
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { resolve, sep } from 'node:path';
-import { rankWithOpenAI } from './provider.mjs';
+import { rankVocabulary } from './provider.mjs';
 import { Ledger } from './ledger.mjs';
 const mime = { '.html': 'text/html; charset=utf-8', '.css': 'text/css', '.js': 'text/javascript', '.json': 'application/json', '.svg': 'image/svg+xml', '.zip': 'application/zip', '.ttf': 'font/ttf' };
-export function createApp(config, provider = rankWithOpenAI) {
+export function createApp(config, provider = rankVocabulary) {
   const ledger = new Ledger(config.dbPath, config);
   let inflight = 0;
   const server = createServer(async (req, res) => {

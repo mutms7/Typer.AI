@@ -12,7 +12,7 @@
 <body>
   <nav aria-label="Main navigation">
     <a class="brand" href="./" aria-label="Typer.AI home">
-      <svg class="logo" viewBox="0 0 38 38" aria-hidden="true"><rect width="38" height="38" rx="12" fill="currentColor"/><path d="M12 12h13M18 12v15M23 23h7m-3-3 3 3-3 3" fill="none" stroke="white" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <svg class="logo" viewBox="0 0 38 38" aria-hidden="true"><rect width="38" height="38" rx="12" fill="currentColor"/><path d="M10 12h13M16.5 12v15M23 23h7m-3-3 3 3-3 3" fill="none" stroke="white" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <span class="brand-animation" aria-hidden="true"><span class="brand-reserve">typer.ai</span><span class="brand-live"><span id="brand-typed">typer.ai</span><span id="brand-ghost" class="completion"></span><span id="brand-caret" class="typing-caret" hidden></span></span><kbd id="brand-tab" class="animation-tab" hidden>Tab</kbd></span>
     </a>
     <div class="nav-actions"><a class="source" href="https://github.com/mutms7/Typer.AI">GitHub</a><a class="install" href="typer-ai.zip" download>Get the extension <span aria-hidden="true">↗</span></a></div>
@@ -27,18 +27,20 @@
       <button id="animation-toggle" class="animation-toggle" type="button" aria-label="Pause typing animations" aria-pressed="false"><svg id="pause-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3v10M11 3v10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span id="animation-label">Pause animation</span></button>
     </section>
     <section class="workspace" aria-labelledby="demo-title">
-      <div class="workspace-bar"><h2 id="demo-title">Demo</h2><div class="example-options" role="group" aria-label="Choose a writing example"><button id="email" class="example selected" aria-pressed="true" type="button">Email</button><button id="meeting" class="example" aria-pressed="false" type="button">Meeting notes</button></div></div>
+      <div class="workspace-bar"><h2 id="demo-title">Demo</h2><div class="example-options" role="group" aria-label="Choose a writing example"><button id="class-notes" class="example selected" aria-pressed="true" type="button">Class Notes</button><button id="email" class="example" aria-pressed="false" type="button">Email</button></div></div>
       <div class="workspace-body">
-        <div class="paper"><div class="paper-heading" id="document-title">Friday’s project update</div><label class="sr-only" for="notes">Your draft</label><textarea id="notes" spellcheck="false" data-typer-title="Friday project update">Hi Jamie,
+        <div class="paper"><label class="sr-only" for="notes">Your draft</label><textarea id="notes" spellcheck="false" data-typer-title="Vectors and linear transformations">Today we’re studying how matrices transform vectors.
 
-Thanks for the project update. I’ll share the project update with the team before Friday’s meeting.
+Vectors and linear transformations
 
-I’ve added my feedback below. Let me know if you have any questions.
+A vector has magnitude and direction. A linear transformation maps a vector to another vector using a matrix.
 
-Your pro</textarea><div class="editor-footer"><span><kbd>Tab</kbd> accept <kbd>Esc</kbd> dismiss</span><button id="reset-example" class="reset-example" type="button">Reset draft</button></div></div>
-        <aside><label for="confidence" class="confidence-label">Confidence <output id="confidence-label">Balanced</output></label><input data-typer-ignore id="confidence" type="range" min="65" max="96" value="82" aria-describedby="confidence-description"><p id="confidence-description">More certainty, or more of the phrase. You decide.</p><label class="toggle" for="enabled">Suggestions <input id="enabled" type="checkbox" checked role="switch"></label><p class="privacy">Your draft stays in this browser.</p></aside>
+We can represent a linear transformation with a matrix. Applying the linear transformation changes the vector’s coordinates.
+
+This is a linear tr</textarea><div class="editor-footer"><span><kbd>Tab</kbd> accept <kbd>Esc</kbd> dismiss</span><button id="reset-example" class="reset-example" type="button">Reset draft</button></div></div>
+        <aside><label for="confidence" class="confidence-label">Confidence <output id="confidence-label">Balanced</output></label><input data-typer-ignore id="confidence" type="range" min="65" max="96" value="82" aria-describedby="confidence-description"><p id="confidence-description">More certainty, or more of the phrase. You decide.</p></aside>
       </div>
-      <p id="demo-hint" class="workspace-note">Click at the end of “pro”, then press Tab. Lower the confidence to complete a familiar phrase.</p>
+      <p id="demo-hint" class="workspace-note">Click at the end of “tr”, then press Tab to complete “transformation”.</p>
     </section>
     <section class="philosophy" aria-labelledby="philosophy-title">
       <h2 id="philosophy-title">Design philosophy</h2>
@@ -47,6 +49,6 @@ Your pro</textarea><div class="editor-footer"><span><kbd>Tab</kbd> accept <kbd>E
     <details class="installation"><summary>Install in Chrome or Edge <span aria-hidden="true">+</span></summary><div><p>Download and unzip the extension. Open your browser’s Extensions page, enable Developer mode, and choose “Load unpacked”. Select the folder containing <code>manifest.json</code>, then refresh your writing page.</p><p>Works with ordinary text inputs, textareas, and editable web documents. Google Docs and canvas editors aren’t supported in this release. The current download runs locally without an account or API key.</p></div></details>
   </main>
   <footer class="site-footer"><a href="https://github.com/mutms7/Typer.AI">Source</a><a href="privacy.html">Privacy</a></footer>
-  <script src="engine.js"></script><script src="editor.js"></script><script src="content.js"></script><script src="animation-timeline.js"></script><script src="animations.js"></script><script src="demo.js"></script>
+  <script src="engine.js"></script><script src="editor.js"></script><script src="content.js"></script><script src="animation-timeline.js"></script><script src="animations.js"></script><script src="demo-samples.js"></script><script src="demo.js"></script>
 </body>
 </html>

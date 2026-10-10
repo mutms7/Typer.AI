@@ -4,11 +4,11 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { createApp } from '../server/app.mjs';
-import { groundedTerms, rankWithOpenAI } from '../server/provider.mjs';
+import { vocabularyTerms, rankWithOpenAI, rankWithGemini, VOCABULARY_PROMPT } from '../server/provider.mjs';
 import { Ledger } from '../server/ledger.mjs';
 const base = { apiKey: 'test-key-not-real', model: 'gpt-4.1-mini', ipSecret: 'test-secret', daily: 2, monthly: 4, perIp: 2, concurrent: 2, trustProxy: false, origins: ['http://test.local'], publicDir: resolve('public') };
-test('provider schema, no stored response, exact corpus validation', async () => {
-  assert.deepEqual(groundedTerms(['vector', 'invented', 'ect', 'vector', '<script>', 'transformation on x'], 'A vector and transformation on x.', ''), ['vector','transformation on x']);
+test('provider schema, no stored response, bounded extrapolated vocabulary', async () => {
+  assert.deepEqual(vocabularyTerms(['vector', 'eigenvalue', 'vector', '<script>', 'transformation on x', 'one two three four five six']), ['vector','eigenvalue','transformation on x']);
   let captured;
   const terms = await rankWithOpenAI({ text: 'The vector has direction.', title: 'Vectors' }, base, new AbortController().signal, async (url, init) => {
     captured = JSON.parse(init.body);
@@ -16,7 +16,21 @@ test('provider schema, no stored response, exact corpus validation', async () =>
     return { ok: true, json: async () => ({ output: [{ content: [{ type: 'output_text', text: JSON.stringify({ terms: ['vector','banana'] }) }] }] }) };
   });
   assert.equal(captured.store, false); assert.equal(captured.text.format.strict, true);
-  assert.deepEqual(terms, ['vector']);
+  assert.equal(captured.instructions, VOCABULARY_PROMPT);
+  assert.deepEqual(terms, ['vector', 'banana']);
+});
+test('Gemini uses the same prompt and sends the owner key only to Google', async () => {
+  let request;
+  const result = await rankWithGemini({ text: 'Vectors and matrices', title: 'Linear algebra' }, { ...base, model: 'gemini-2.5-flash' }, undefined, async (url, init) => {
+    assert.ok(url.startsWith('https://generativelanguage.googleapis.com/'));
+    assert.ok(!url.includes(base.apiKey));
+    assert.equal(init.headers['x-goog-api-key'], base.apiKey);
+    request = JSON.parse(init.body);
+    return { ok: true, json: async () => ({ candidates: [{ content: { parts: [{ text: '{"terms":["eigenvalue","linear independence"]}' }] } }] }) };
+  });
+  assert.equal(request.systemInstruction.parts[0].text, VOCABULARY_PROMPT);
+  assert.equal(request.generationConfig.responseMimeType, 'application/json');
+  assert.deepEqual(result, ['eigenvalue', 'linear independence']);
 });
 test('quota reservations persist across restart and failed attempts', async () => {
   const dir = await mkdtemp(join(tmpdir(), 'typer-quota-'));

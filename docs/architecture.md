@@ -13,8 +13,8 @@ flowchart LR
   G --> T[Tab: native text insertion]
   A -->|Changed excerpt, idle, opt-in, 45 second minimum| S[Extension service worker]
   S --> R[Shared-key backend]
-  R --> L[OpenAI vocabulary ranking]
-  L --> V[Validate exact document terms]
+  R --> L[Gemini or OpenAI vocabulary ranking]
+  L --> V[Validate bounded vocabulary]
   V -->|Ranked terms only| B
 ```
 
@@ -24,7 +24,7 @@ The engine tokenizes a bounded document window, counts words, weights title term
 
 The confidence score combines dominance, prefix length and contextual evidence. An isolated one-letter match needs strong support. No prediction is made after punctuation or whitespace alone. Multiword continuation requires repeated, dominant evidence at every step and stops as soon as the confidence drops below the chosen threshold. There is an internal eight-token safety ceiling, but the user's control is evidence confidence, not a fixed output length.
 
-Cloud ranking only adds a modest weight to vocabulary already in the local index. It does not create a new word or trust model-reported confidence. The server validates every ranked term as a bounded, whole-token substring of the excerpt or title, then the engine independently filters it against its own vocabulary.
+Cloud ranking boosts existing vocabulary and adds closely related terms that have not appeared yet. The prompt uses titles and headings as topic clues and asks for vocabulary, never draft sentences or invented facts. The server checks term length, character format, duplicates and a five-word limit. This validates format, not factual relevance. New words have weaker evidence than document words and require at least three typed characters. Inferred phrases require an unambiguous phrase and a threshold of 0.78 or lower. The confidence score remains a heuristic, not a calibrated probability. Clearing ranks or changing documents removes inferred terms.
 
 ## Editor integration
 
@@ -34,7 +34,7 @@ Selections, IME composition, stale snapshots, unsupported layout, paused sites, 
 
 ## Server boundary
 
-The extension service worker owns networking. API URLs are public configuration, not secrets. The server holds the shared API key, requests schema-constrained output with `store: false`, and never returns provider credentials. Document excerpts and ranking outputs are not written to disk or logs.
+The extension service worker owns networking. API URLs are public configuration, not secrets. The server holds the shared API key, requests schema-constrained output (OpenAI requests use `store: false`), and never returns provider credentials. Live document excerpts and ranking outputs are not written to disk or logs. The public demo is an exception for authored, public sample drafts: its vocabulary JSON stores real Gemini responses and the exact prompt, generated with `npm run demo:vocabulary`. It contains no private drafts or credentials.
 
 SQLite stores quota reservations only. An immediate transaction reserves daily, monthly and per-IP hourly allowances before each provider call. Provider failures do not refund allowances, preventing retries from bypassing a budget. The server bounds bodies, excerpts, model output, concurrent calls and response time.
 

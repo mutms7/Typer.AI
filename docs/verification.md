@@ -4,9 +4,9 @@ Verified locally on October 10, 2026 with Node.js 24.11.1 and Microsoft Edge dri
 
 ## Automated checks
 
-`npm test` passes 11 checks covering document-grounded completion, punctuation abstention, confidence-based phrase extension, ambiguous prefixes, cloud vocabulary isolation, case and Unicode behavior, mid-word safety, document reset, unfinished-prefix context backoff, provider response validation, quota persistence and HTTP endpoint behavior.
+`npm test` passes 13 checks covering document-grounded completion, punctuation abstention, confidence-based phrase extension, ambiguous prefixes, cloud vocabulary isolation, case and Unicode behavior, mid-word safety, document reset, unfinished-prefix context backoff, provider response validation, quota persistence and HTTP endpoint behavior.
 
-The provider integration uses a mocked OpenAI response and inspects the request schema. The live provider was not called because an owner API key was not configured. This verification does not establish real-model accuracy or production performance.
+Provider tests inspect mocked Gemini and OpenAI request schemas. Real Gemini 3.5 Flash-Lite calls generated 12 math terms and 20 email terms for the public demo. These samples establish a working provider call, not general accuracy or production performance. Browser checks confirm Tab completion, undo, titles inside the draft, zero-width animation carets, left alignment and mobile layout.
 
 ## Installed extension checks
 

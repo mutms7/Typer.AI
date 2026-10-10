@@ -18,11 +18,26 @@ test('confidence gates ambiguity and repeated phrase length', () => {
   const ambiguous = new Engine().index('Velocity varies. Vectors vary. Volume varies.', '');
   assert.equal(ambiguous.predict('v', .82), null);
 });
-test('cloud rankings cannot add new vocabulary', () => {
+test('related cloud words require a stronger prefix and clear on opt-out', () => {
   const e = new Engine().index('A vector has magnitude.', 'Vectors');
-  e.setRanks(['banana', 'vector']);
-  assert.equal(e.predict('ban', .65), null);
+  e.setRanks(['eigenvalue', 'vector']);
+  assert.equal(e.predict('ei', .65), null);
+  assert.equal(e.predict('eig', .82).suffix, 'envalue');
   assert.equal(e.predict('A ve').source, 'cloud-ranked');
+  e.setRanks([]);
+  assert.equal(e.predict('eig', .65), null);
+  assert.equal(e.predict('A ve').source, 'local');
+});
+test('inferred phrases respect confidence and do not invent sentence evidence', () => {
+  const e = new Engine().index('We study matrices and vectors.', 'Linear algebra');
+  e.setRanks(['eigenvalue decomposition']);
+  assert.equal(e.predict('eig', .82).suffix, 'envalue');
+  assert.equal(e.predict('eig', .7).suffix, 'envalue decomposition');
+  assert.equal(e.predict('however,', .65), null);
+  e.setRanks(['eigenvalue decomposition', 'eigenvalue problem']);
+  assert.equal(e.predict('eig', .7).suffix, 'envalue');
+  e.index('An email about an internship.', 'Job opportunity');
+  assert.equal(e.predict('eig', .65), null);
 });
 test('case, mid-word safety and indexing isolation', () => {
   const e = new Engine().index('A vector has magnitude. A vector has direction.', 'Vector');

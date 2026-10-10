@@ -37,7 +37,7 @@ Open `http://127.0.0.1:8787` for the interactive demo. Load `dist/extension` in 
 - A confidence slider that gates suggestions and phrase continuation. Confidence is a heuristic evidence score, not a calibrated probability.
 - Native insertion where supported, with input events for editor integrations. Tab keeps its normal behavior when there is no suggestion.
 - Escape dismissal, composition handling, selection checks, scroll positioning, paused sites, and a global off switch.
-- Optional structured-output OpenAI vocabulary ranking in the background, validated against the original excerpt and title.
+- Optional structured-output Gemini or OpenAI vocabulary ranking in the background, including closely related unseen words. Inferred words need a longer typed prefix; the typing path stays local.
 - Owner-only API key, exact-origin access policy, bounded excerpts and output, durable SQLite daily/monthly request budgets, per-IP limits, and concurrency control.
 - No accounts, document persistence, telemetry, or writing history. Provider retention is governed by OpenAI's own policies.
 
@@ -59,7 +59,7 @@ Request budgets are hard limits on reserved provider attempts. They are not exac
 
 ## Status
 
-This repository includes a functional local extension, browser demo, tested shared-key backend, packaging, and CI/Pages workflows. Live cloud ranking requires the owner to provision the backend and set the key. No real API request was made during initial verification without an owner key. Resume adoption figures are not product telemetry and are not claimed here.
+This repository includes a functional local extension, browser demo, tested shared-key backend, packaging, and CI/Pages workflows. Live cloud ranking requires the owner to provision the backend and set the key. The initial verification used mocked provider responses. The updated public demo uses real Gemini 3.5 Flash-Lite vocabulary responses for its two public samples, generated on October 10, 2026. Visitor edits are never uploaded by the static demo. Resume adoption figures are not product telemetry and are not claimed here.
 
 ## License
 

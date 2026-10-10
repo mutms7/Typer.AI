@@ -106,6 +106,7 @@
   } else {
     // Demo can change the same engine's threshold without persisting document text.
     window.addEventListener('typer-settings', e => { settings = { ...settings, ...e.detail }; hide(); schedule(); });
+    window.addEventListener('typer-demo-vocabulary', e => { ranks = e.detail?.terms || []; engine.setRanks(ranks); hide(); schedule(); });
   }
   focus(document.activeElement);
 })();

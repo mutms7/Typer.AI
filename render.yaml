@@ -9,7 +9,11 @@ services:
       mountPath: /data
       sizeGB: 1
     envVars:
-      - key: OPENAI_API_KEY
+      - key: AI_PROVIDER
+        value: gemini
+      - key: GEMINI_MODEL
+        value: gemini-3.5-flash-lite
+      - key: GEMINI_API_KEY
         sync: false
       - key: IP_HASH_SECRET
         generateValue: true
