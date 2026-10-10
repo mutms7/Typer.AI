@@ -97,7 +97,7 @@
       const suffix = suggestion.suffix;
       // Consume Tab only after native insertion succeeds.
       if (E.insert(active, suffix)) { e.preventDefault(); e.stopImmediatePropagation(); hide(); dismissed = ''; schedule(); }
-    } else if (['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End','PageUp','PageDown'].includes(e.key)) hide();
+    } else if (['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End','PageUp','PageDown'].includes(e.key)) { hide(); schedule(); }
   }, true);
   document.addEventListener('compositionstart', () => { composing = true; hide(); }, true);
   document.addEventListener('compositionend', () => { composing = false; schedule(); }, true);
@@ -106,7 +106,7 @@
     if (editor !== active) focus(document.activeElement);
     else schedule();
   });
-  document.addEventListener('pointerdown', hide, true);
+  document.addEventListener('pointerdown', () => { hide(); schedule(); }, true);
   document.addEventListener('scroll', schedule, true);
   window.addEventListener('resize', schedule);
   document.addEventListener('visibilitychange', () => { if (document.hidden) hide(); else schedule(); });

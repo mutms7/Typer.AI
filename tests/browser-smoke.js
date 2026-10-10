@@ -21,7 +21,9 @@ async page => {
   await page.getByRole('button', { name: 'Add textarea' }).click();
   const dynamic = page.getByRole('textbox', { name: 'Dynamic notes', exact: true });
   await dynamic.scrollIntoViewIfNeeded();
-  await dynamic.focus(); await page.keyboard.press('Control+End'); await page.waitForTimeout(200); await page.keyboard.press('Tab');
+  await dynamic.focus(); await page.keyboard.press('Control+End'); await page.waitForTimeout(200);
+  // End at an already unchanged caret must still restore the suggestion.
+  await page.keyboard.press('End'); await page.waitForTimeout(200); await page.keyboard.press('Tab');
   check(/A vector(?: has)?$/.test(await dynamic.inputValue()), 'dynamic field');
   check(await page.locator('[data-typer-ui]').count() === 1, 'only the installed extension is active');
   if (failures.length) throw new Error(failures.join(', '));
