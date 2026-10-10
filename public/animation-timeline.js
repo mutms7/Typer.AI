@@ -4,7 +4,6 @@
   const fullLine = text => ({ typed: text, ghost: '', tab: '', caret: false });
   const line = (typed, ghost = '', tab = '') => ({ typed, ghost, tab, caret: true });
   const heroFrames = [
-    [2600, { stage: 'read', keep: fullLine(keep), skip: fullLine(skip) }],
     [80, { stage: 'keep-letter', keep: line('K'), skip: fullLine('') }],
     [240, { stage: 'keep-preview', keep: line('K', 'eep', 'ready'), skip: fullLine('') }],
     [80, { stage: 'keep-tab', keep: line('K', 'eep', 'pressed'), skip: fullLine('') }],
@@ -24,7 +23,7 @@
     [80, { stage: 'skip-tab', keep: fullLine(keep), skip: line('Sk', skip.slice(2), 'pressed') }],
     [3500, { stage: 'accepted', keep: fullLine(keep), skip: fullLine(skip) }]
   ];
-  const brandFrames = [[2600, { stage: 'read', line: fullLine(brand) }]];
+  const brandFrames = [];
   const add = (duration, stage, value) => brandFrames.push([duration, { stage, line: value }]);
   for (let n = 1; n <= 6; n++) add(110, 'type-typer-dot', line(brand.slice(0, n)));
   add(240, 'typer-dot-preview', line('typer.', 'ai', 'ready'));
