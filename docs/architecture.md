@@ -38,7 +38,7 @@ The extension service worker owns networking. API URLs are public configuration,
 
 SQLite stores quota reservations only. An immediate transaction reserves daily, monthly and per-IP hourly allowances before each provider call. Provider failures do not refund allowances, preventing retries from bypassing a budget. The server bounds bodies, excerpts, model output, concurrent calls and response time.
 
-One persistent SQLite volume and one application instance are the supported deployment topology. Horizontal scaling needs a shared transactional quota store. CORS allowlists reduce accidental access but cannot authenticate a public client. An anonymous endpoint cannot prevent all abuse or distinguish every person behind a shared network.
+The free deployment uses Supabase for transactional request counters across backend restarts. Local development uses SQLite; the optional paid deployment uses one persistent SQLite volume and one application instance. CORS allowlists reduce accidental access but cannot authenticate a public client. An anonymous endpoint cannot prevent all abuse or distinguish every person behind a shared network.
 
 ## What the benchmark means
 
@@ -50,7 +50,7 @@ Calibrate the heuristic gate on consented evaluation data, measure end-to-end in
 
 ## Ranking refresh policy
 
-After editor focus or input, wait for 1.8 seconds without another input event. Only rank documents of at least 80 characters, and skip unchanged excerpts. The content script enforces a 45-second cooldown and the service worker enforces the same limit per tab/frame, with one in-flight call at a time. This is a configurable-in-code cost/freshness tradeoff, not an empirically optimized interval; continuously typing postpones ranking until a pause. A pause during the cooldown does not queue a future refresh: another input/focus event must trigger a later attempt.
+After editor focus or input, wait for 1.8 seconds without another input event. Only rank documents of at least 80 characters, and skip unchanged excerpts. The content script enforces a 45-second cooldown and the service worker enforces the same limit per tab/frame, with one in-flight call at a time. This is a configurable-in-code cost/freshness tradeoff, not an empirically optimized interval; continuously typing postpones ranking until a pause. Edits during the cooldown schedule a refresh for its end. Failures retry after 45, 90 and 180 seconds, then wait for new activity or settings changes. Requests require an active, focused editor in a visible page.
 
 Each attempt sends the same instruction and a fresh title/document excerpt, not a conversation history or the prior cache. Useful document words may recur between refreshes; a successful nonempty response replaces the old AI ranks rather than accumulating them. Failure or throttling preserves the last cache. Changing the active editor or opting out clears it. Ranking has a 30-second server deadline and a 32-second extension deadline; local completion never waits on this call.
 

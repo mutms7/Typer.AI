@@ -61,7 +61,7 @@ Request budgets are hard limits on reserved provider attempts. They are not exac
 
 ## Status
 
-This repository includes a functional local extension, browser demo, tested shared-key backend, packaging, and CI/Pages workflows. Live cloud ranking requires the owner to provision the backend and set the key. The initial verification used mocked provider responses. The updated public demo uses real Gemini 3.1 Flash-Lite vocabulary responses for its two public samples, generated on October 10, 2026. Visitor edits are never uploaded by the static demo. Resume adoption figures are not product telemetry and are not claimed here.
+Version 0.1.1 is an unpacked beta with optional live Gemini refreshes through https://typer-ai.onrender.com. Hosting uses Render Free and a dedicated Supabase Free database for durable request counters. A live browser-extension refresh was verified on October 10, 2026. Cloud mode is off by default; the free backend can sleep and request limits apply. The public demo uses precomputed Gemini 3.1 Flash-Lite responses for its two public samples. Visitor edits are never uploaded by the static demo. Resume adoption figures are not product telemetry and are not claimed here.
 
 ## License
 

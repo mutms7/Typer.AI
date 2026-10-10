@@ -18,7 +18,7 @@ The browser smoke snippet is saved in `tests/browser-smoke.js`. Run with Playwri
 
 ## Limits
 
-No claim of compatibility with every web editor, a Web Store submission, a live shared cloud deployment, measured user adoption, calibrated probabilities, improved memory retention, or measured human writing speed is made. Engine microbenchmarks exclude rendering and network time.
+No claim of compatibility with every web editor, a Web Store submission, measured user adoption, calibrated probabilities, improved memory retention, or measured human writing speed is made. Engine microbenchmarks exclude rendering and network time.
 
 ## Modeled API request reduction
 
@@ -26,4 +26,4 @@ No claim of compatibility with every web editor, a Web Store submission, a live 
 
 The updated fixtures put their titles on the first line. Class Notes covers mean and median of five quiz scores. Browser checks verify ordinary `an` to `and` and `th` to `the` completion, repeated email vocabulary and mobile caret visibility. Provider tests cover the structured vocabulary schema and exclude built-in standalone words while retaining phrases. The published cache uses Gemini 3.1 Flash-Lite.
 
-Deployment preparation was checked locally with mocked provider responses. No hosted backend was provisioned and no live provider request was made during this pass. Docker is not available in the local environment, so the container image build and host disk permissions still need verification on the deployment host.
+On October 10, 2026, Render built the Docker image and deployed the free backend at https://typer-ai.onrender.com. Its readiness and extension-origin preflight checks passed. The dedicated Supabase quota table passed atomic counter checks; anonymous and authenticated roles cannot access the table or execute quota functions. A real extension background refresh of disposable mathematics notes returned HTTP 200 and 79 Gemini entries. Cloud mode was disabled afterward. The automated cloud test used a separate copy with its host permission already granted because headless Edge cannot complete the browser permission prompt. The published ZIP retains the optional permission and explicit popup opt-in. The original ZIP's local editor checks passed in Edge, including Tab, undo, Escape, rich text and dynamic editors.
