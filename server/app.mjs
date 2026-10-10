@@ -1,9 +1,11 @@
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
+import { readFileSync } from 'node:fs';
 import { resolve, sep } from 'node:path';
 import { rankVocabulary } from './provider.mjs';
 import { Ledger } from './ledger.mjs';
 const mime = { '.html': 'text/html; charset=utf-8', '.css': 'text/css', '.js': 'text/javascript', '.json': 'application/json', '.svg': 'image/svg+xml', '.zip': 'application/zip', '.ttf': 'font/ttf' };
+const version = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')).version;
 export function createApp(config, provider = rankVocabulary) {
   const ledger = new Ledger(config.dbPath, config);
   let inflight = 0;
@@ -15,7 +17,13 @@ export function createApp(config, provider = rankVocabulary) {
     const json = (status, body) => { if (!res.destroyed) { res.writeHead(status, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(body)); } };
     try {
       const pathname = new URL(req.url, 'http://localhost').pathname;
-      if (pathname === '/health' && req.method === 'GET') return json(200, { ok: true, cloudConfigured: Boolean(config.apiKey), version: '0.1.0' });
+      if (pathname === '/health' && req.method === 'GET') return json(200, { ok: true, cloudConfigured: Boolean(config.apiKey), version });
+      if (pathname === '/ready' && req.method === 'GET') {
+        let databaseReady = false;
+        try { databaseReady = ledger.healthy(); } catch { /* Report readiness without database details. */ }
+        const cloudConfigured = Boolean(config.apiKey);
+        return json(databaseReady && cloudConfigured ? 200 : 503, { ok: databaseReady && cloudConfigured, databaseReady, cloudConfigured, version });
+      }
       if (pathname === '/api/rank') {
         const origin = req.headers.origin;
         if (!origin || !config.origins.includes(origin)) return json(403, { error: 'Origin not allowed' });

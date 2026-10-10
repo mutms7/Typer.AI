@@ -1,19 +1,42 @@
 {
   "manifest_version": 3,
   "name": "Typer.AI",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Your words, less typing. Document-grounded gray autocomplete with Tab to accept.",
   "minimum_chrome_version": "120",
-  "permissions": ["storage"],
-  "optional_host_permissions": ["https://*/*", "http://localhost/*", "http://127.0.0.1/*"],
-  "background": { "service_worker": "background.js" },
-  "action": { "default_popup": "popup.html", "default_title": "Typer.AI settings" },
-  "content_scripts": [{
-    "matches": ["http://*/*", "https://*/*"],
-    "js": ["engine.js", "editor.js", "content.js"],
-    "run_at": "document_idle",
-    "all_frames": true,
-    "match_about_blank": true
-  }],
-  "content_security_policy": { "extension_pages": "script-src 'self'; object-src 'none'" }
+  "permissions": [
+    "storage"
+  ],
+  "optional_host_permissions": [
+    "https://*/*",
+    "http://localhost/*",
+    "http://127.0.0.1/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Typer.AI settings"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ],
+      "js": [
+        "engine.js",
+        "editor.js",
+        "content.js"
+      ],
+      "run_at": "document_idle",
+      "all_frames": true,
+      "match_about_blank": true
+    }
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'none'"
+  },
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAoItt+WRvYvSnxe1PrU9pmbgfMkLLDawlhCrK8YNmymE8U5V4ilJbb+//4sgiDAeYiwy5WuZKdpBcbbCgPqOjx5N2tQPe4rbmlTIpeO/D5pzbhASz5B704dRT4yUNs5uvYWS9CJqxXAgj1/EWYUxN/4cMGls1dlCpVqnAGlZmKUFWHFHBYjdLac6SOFNhgPHD7hJTzH1Cf6iu8CUeH1bVOLMTbbFZYbl/mCMBmYO2KCc4Wh1cOVwXU/XtI6Yw20ueC3wT2HCv2MFsJj3GCdCiWSPFwFl5z5xw6tUnTwoK7aZ982ePlOvcj7Gj4/BP2YLMAEB3j4BDIvklFiHRIq9W2QIDAQAB"
 }

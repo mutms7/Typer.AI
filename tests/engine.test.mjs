@@ -55,6 +55,15 @@ test('phrase evidence never crosses sentence punctuation', () => {
   const e = new Engine().index('A vector. Banana grows. A vector. Banana grows.', 'Vector');
   assert.equal(e.predict('A v', .65).suffix, 'ector');
 });
+
+test('typed context resets at punctuation and line breaks', () => {
+  const engine = new Engine().index('Regarding the interview. Regarding the interview.', '');
+  assert.equal(engine.predict('regarding t').suffix, 'he interview');
+  for (const boundary of ['. ', ', ', ': ', '! ', '? ', '\n', '\n\n']) {
+    assert.deepEqual(engine.predict('regarding' + boundary + 't'), engine.predict('t'));
+  }
+  assert.equal(engine.predict('regarding\tt').suffix, 'he interview');
+});
 test('unicode document vocabulary and weak one-off prefixes', () => {
   const e = new Engine().index('Énergie et accélération. Énergie et accélération.', 'Énergie');
   assert.equal(e.predict('éne', .82).suffix, 'rgie');

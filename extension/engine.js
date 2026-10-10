@@ -115,7 +115,13 @@
       const cachedPhrase = this.phraseCompletion(before, threshold);
       const phraseResult = () => cachedPhrase && ({ suffix: cachedPhrase.suffix, confidence: cachedPhrase.confidence, source: cachedPhrase.source });
       if (!candidates?.length) return phraseResult();
-      const preceding = tokens(before.slice(Math.max(0, before.length - 250), before.length - partial.length)).map(t => t.key);
+      // Match only adjacent words in this sentence, never across punctuation or paragraphs.
+      const recent = before.slice(-250), context = tokens(recent);
+      const preceding = [];
+      for (let i = context.length - 2; i >= 0 && preceding.length < 3; i--) {
+        if (!/^[ \t]+$/.test(recent.slice(context[i].end, context[i + 1].start))) break;
+        preceding.unshift(context[i].key);
+      }
       let evidence;
       for (let n = Math.min(3, preceding.length); n > 0; n--) {
         const choices = this.next.get(preceding.slice(-n).join(' '));

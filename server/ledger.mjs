@@ -26,5 +26,6 @@ export class Ledger {
       this.db.exec('COMMIT'); return true;
     } catch (error) { this.db.exec('ROLLBACK'); throw error; }
   }
+  healthy() { return this.db.prepare('SELECT 1 AS ok').get().ok === 1; }
   close() { this.db.close(); }
 }

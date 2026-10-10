@@ -4,15 +4,22 @@ import { createRequire } from 'node:module';
 const { COMMON_WORDS } = createRequire(import.meta.url)('../extension/engine.js');
 await writeFile('public/common-words.json', JSON.stringify({ words: Object.keys(COMMON_WORDS), note: 'Hand-curated offline vocabulary. Weights are heuristic priors, not measured word probabilities.' }, null, 2) + '\n');
 const apiUrl = process.env.TYPER_API_URL || '';
-if (apiUrl) { const u = new URL(apiUrl); if (u.protocol !== 'https:' && !['localhost','127.0.0.1'].includes(u.hostname)) throw new Error('Public API must use HTTPS'); if (u.username || u.password || u.search || u.hash || u.pathname !== '/') throw new Error('TYPER_API_URL must be an origin'); }
+if (apiUrl) { const u = new URL(apiUrl); if (u.protocol !== 'https:' && !(u.protocol === 'http:' && ['localhost','127.0.0.1'].includes(u.hostname))) throw new Error('Public API must use HTTPS'); if (u.username || u.password || u.search || u.hash || u.pathname !== '/') throw new Error('TYPER_API_URL must be an origin'); }
 await mkdir('dist/extension', { recursive: true });
 await cp('extension', 'dist/extension', { recursive: true });
+const manifest = JSON.parse(await readFile('extension/manifest.json', 'utf8'));
+manifest.optional_host_permissions = apiUrl ? [new URL(apiUrl).origin + '/*'] : [];
+await writeFile('dist/extension/manifest.json', JSON.stringify(manifest, null, 2) + '\n');
 await writeFile('dist/extension/config.js', 'globalThis.TYPER_CONFIG = ' + JSON.stringify({ apiUrl: apiUrl.replace(/\/$/, '') }) + ';\n');
+await cp('LICENSE', 'dist/extension/LICENSE.txt');
+await writeFile('dist/extension/INSTALL.txt', `Typer.AI ${manifest.version}\n\n1. Unzip this entire archive into a folder you will keep.\n2. Open chrome://extensions or edge://extensions.\n3. Enable Developer mode, then choose Load unpacked.\n4. Select the folder containing manifest.json.\n5. Refresh your writing page. Type a few letters of a word in the draft.\n6. Press Tab to accept gray text, or Escape to dismiss it.\n\n${apiUrl ? 'Live background AI is available after you enable it in the popup and allow access to ' + new URL(apiUrl).origin + '. Document excerpts are then sent to the backend and its AI provider.' : 'This build runs locally. Live background AI is unavailable because no backend is connected.'}\n\nOpen the extension popup to turn suggestions off, change confidence, or pause a site.\nSupports ordinary text inputs, textareas and contenteditable editors.\nGoogle Docs and canvas editors are not supported.\nTo update, replace the files in this folder and click Reload on the Extensions page.\nUninstall through the Extensions page to remove saved settings.\n\nPrivacy: https://mutms7.github.io/Typer.AI/privacy.html\nReport issues: https://github.com/mutms7/Typer.AI/issues\n`);
 for (const name of ['engine.js','editor.js','content.js']) await cp('extension/' + name, 'public/' + name);
 const crcTable = Array.from({ length: 256 }, (_, n) => { for (let k = 0; k < 8; k++) n = n & 1 ? 0xedb88320 ^ (n >>> 1) : n >>> 1; return n >>> 0; });
 function crc32(data) { let crc = 0xffffffff; for (const b of data) crc = crcTable[(crc ^ b) & 255] ^ (crc >>> 8); return (crc ^ 0xffffffff) >>> 0; }
 const local = [], central = []; let offset = 0;
-for (const name of (await readdir('dist/extension')).sort()) {
+// Include only intended release files, even if the staging folder has leftovers.
+const releaseFiles = [...await readdir('extension'), 'LICENSE.txt', 'INSTALL.txt'].sort();
+for (const name of releaseFiles) {
   const contents = await readFile(resolve('dist/extension', name)), filename = Buffer.from(name), crc = crc32(contents);
   const h = Buffer.alloc(30); h.writeUInt32LE(0x04034b50); h.writeUInt16LE(20, 4); h.writeUInt16LE(0x0800, 6); h.writeUInt32LE(crc, 14); h.writeUInt32LE(contents.length, 18); h.writeUInt32LE(contents.length, 22); h.writeUInt16LE(filename.length, 26);
   local.push(h, filename, contents);

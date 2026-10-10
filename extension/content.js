@@ -48,23 +48,25 @@
   }
   function schedule() { if (!frame) frame = requestAnimationFrame(render); }
   async function cloud() {
-    if (!active || !allowed() || !settings.cloud || Date.now() - lastCloud < 45000) return;
+    if (!active || E.editorFor(document.activeElement) !== active || !allowed() || !settings.cloud) return;
+    const remaining = 45000 - (Date.now() - lastCloud);
+    if (remaining > 0) { clearTimeout(cloudTimer); cloudTimer = setTimeout(cloud, remaining); return; }
     const snap = E.snapshot(active); if (!snap || snap.text.length < 80) return;
     // First paragraphs plus recent local context. Never gather surrounding page text.
     const text = snap.text.length <= 6000 ? snap.text : snap.text.slice(0, 2500) + '\n' + snap.before.slice(-3400);
     if (text === lastExcerpt) return;
-    lastCloud = Date.now(); lastExcerpt = text;
+    lastCloud = Date.now();
     const version = epoch, editor = active;
     try {
       const result = await chrome.runtime.sendMessage({ type: 'rank', text, title: currentTitle(active) });
       if (version !== epoch || editor !== active || !settings.cloud || !allowed()) return;
       // A failed or throttled refresh must not erase the useful current cache.
-      if (result?.terms?.length) { ranks = result.terms; engine.setRanks(ranks); schedule(); }
+      if (result?.terms?.length) { lastExcerpt = text; ranks = result.terms; engine.setRanks(ranks); schedule(); }
     } catch { /* Local engine keeps working when extension context is gone. */ }
   }
   function focus(target) {
     const editor = E.editorFor(target);
-    if (editor === active) return schedule();
+    if (editor === active) { schedule(); clearTimeout(cloudTimer); if (active) cloudTimer = setTimeout(cloud, 1800); return; }
     epoch++; active = editor; ranks = []; indexedText = ''; lastIndex = 0; lastCloud = 0; lastExcerpt = ''; dismissed = '';
     engine = new TyperEngine(); hide(); clearTimeout(cloudTimer); clearTimeout(rebuildTimer);
     if (active) { schedule(); cloudTimer = setTimeout(cloud, 1800); }
@@ -102,7 +104,14 @@
   if (typeof chrome !== 'undefined' && chrome.runtime?.id) {
     chrome.runtime.sendMessage({ type: 'settings' }).then(r => { if (r?.settings) settings = r.settings; focus(document.activeElement); }).catch(() => {});
     chrome.runtime.onMessage.addListener(message => {
-      if (message.type === 'settingsChanged') { settings = message.settings; epoch++; ranks = []; engine.setRanks([]); clearTimeout(cloudTimer); hide(); schedule(); }
+      if (message.type === 'settingsChanged') {
+        const wasCloud = settings.cloud;
+        settings = message.settings; epoch++;
+        if (!settings.cloud) { ranks = []; engine.setRanks([]); }
+        if (wasCloud !== settings.cloud) lastExcerpt = '';
+        clearTimeout(cloudTimer); hide(); schedule();
+        if (active && allowed() && settings.cloud) cloudTimer = setTimeout(cloud, 1800);
+      }
     });
   } else {
     // Demo can change the same engine's threshold without persisting document text.

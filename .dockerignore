@@ -1,6 +1,13 @@
 .git
-.env*
-data
+.github
+.env
+.env.*
 node_modules
+data
 dist
+coverage
+.playwright-cli
+output
+*.log
 tests
+docs

@@ -1,6 +1,6 @@
 {
   "name": "typer-ai",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "Document-grounded autocomplete. Background AI ranking, instant local completion.",
   "engines": { "node": ">=24" },
@@ -8,6 +8,7 @@
     "start": "node --env-file-if-exists=.env server/index.mjs",
     "test": "node --test tests/*.test.mjs",
     "benchmark": "node scripts/benchmark.mjs",
+    "deployment:check": "node scripts/check-deployment.mjs",
     "demo:vocabulary": "node --env-file-if-exists=.env scripts/generate-demo-vocabulary.mjs",
     "package": "node scripts/package.mjs"
   }

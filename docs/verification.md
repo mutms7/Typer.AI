@@ -4,9 +4,9 @@ Verified locally on October 10, 2026 with Node.js 24.11.1 and Microsoft Edge dri
 
 ## Automated checks
 
-`npm test` passes 19 checks covering document-grounded completion, punctuation abstention, confidence-based phrase extension, ambiguous prefixes, cloud vocabulary isolation, case and Unicode behavior, mid-word safety, document reset, unfinished-prefix context backoff, provider response validation, quota persistence and HTTP endpoint behavior.
+`npm test` passes 29 checks covering document-grounded completion, punctuation abstention, confidence-based phrase extension, ambiguous prefixes, cloud vocabulary isolation, case and Unicode behavior, mid-word safety, document reset, unfinished-prefix context backoff, cached phrase reachability, provider response validation, production configuration validation, quota persistence and HTTP endpoint behavior. Content-script tests cover enabling cloud mode, delayed refreshes during the cooldown, failed-refresh retries, preserving vocabulary when confidence changes, and clearing vocabulary on opt-out. Backend tests also verify readiness and deployment preflights without provider calls, allowed and denied origins, and missing-key fallback.
 
-Provider tests inspect mocked Gemini and OpenAI request schemas. Real Gemini 3.5 Flash-Lite calls generated 80 statistics-note entries and 80 email entries for the public demo. These samples establish a working provider call, not general accuracy or production performance. Browser checks confirm Tab completion, undo, titles inside the draft, zero-width animation carets, left alignment and mobile layout.
+Provider tests inspect mocked Gemini and OpenAI request schemas. Real Gemini 3.1 Flash-Lite calls generated 80 statistics-note entries and 80 email entries for the public demo. These samples establish a working provider call, not general accuracy or production performance. Browser checks confirm Tab completion, undo, titles inside the draft, zero-width animation carets, left alignment and mobile layout.
 
 ## Installed extension checks
 
@@ -24,4 +24,6 @@ No claim of compatibility with every web editor, a Web Store submission, a live 
 
 `node scripts/request-model.mjs` compares a 10-minute, single-editor session at 50 WPM (five characters per word) with one request per character. The baseline is 2,500 requests; a 45-second minimum refresh interval permits at most 14 background calls, including the initial call. That is a modeled 99.44% reduction. Idle delays and unchanged excerpts can reduce calls further. This is not production telemetry or a claim about writing speed, accuracy, or API cost. Switching editors starts a new refresh window.
 
-The updated fixtures put their titles on the first line. Class Notes covers mean and median of five quiz scores. Browser checks verify ordinary `an` to `and` and `th` to `the` completion, repeated email vocabulary and mobile caret visibility. Provider tests cover the three-group schema and retain one- and two-letter function words. Stronger Gemini model trials returned service errors or timeouts; the published cache uses Gemini 3.5 Flash-Lite.
+The updated fixtures put their titles on the first line. Class Notes covers mean and median of five quiz scores. Browser checks verify ordinary `an` to `and` and `th` to `the` completion, repeated email vocabulary and mobile caret visibility. Provider tests cover the structured vocabulary schema and exclude built-in standalone words while retaining phrases. The published cache uses Gemini 3.1 Flash-Lite.
+
+Deployment preparation was checked locally with mocked provider responses. No hosted backend was provisioned and no live provider request was made during this pass. Docker is not available in the local environment, so the container image build and host disk permissions still need verification on the deployment host.

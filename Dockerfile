@@ -1,6 +1,7 @@
 FROM node:24-alpine
 WORKDIR /app
 COPY package.json ./
+COPY LICENSE ./
 COPY server ./server
 COPY public ./public
 COPY extension ./extension

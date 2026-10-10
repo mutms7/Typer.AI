@@ -5,7 +5,7 @@
   const enabled = document.querySelector('#enabled'), threshold = document.querySelector('#threshold'), cloud = document.querySelector('#cloud'), site = document.querySelector('#site'), status = document.querySelector('#status');
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   let hostname;
-  try { hostname = new URL(tab.url).hostname; } catch { /* Browser may hide tab URL without host access. */ }
+  try { const url = new URL(tab.url); if (['http:', 'https:'].includes(url.protocol)) hostname = url.hostname; } catch { /* Browser may hide tab URL without host access. */ }
   enabled.checked = settings.enabled; threshold.value = Math.round(settings.threshold * 100); cloud.checked = settings.cloud;
   cloud.disabled = !TYPER_CONFIG.apiUrl;
   if (!TYPER_CONFIG.apiUrl) document.querySelector('#cloud-help').textContent = 'This build runs locally. Background AI ranking becomes available when the project owner connects the shared server.';
