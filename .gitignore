@@ -1,0 +1,14 @@
+node_modules/
+.env
+.env.*
+!.env.example
+data/
+dist/
+coverage/
+.playwright-cli/
+output/
+*.log
+public/engine.js
+public/editor.js
+public/content.js
+public/typer-ai.zip

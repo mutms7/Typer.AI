@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: typer-ai
+    runtime: docker
+    plan: starter
+    healthCheckPath: /health
+    disk:
+      name: typer-quota
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: IP_HASH_SECRET
+        generateValue: true
+      - key: ALLOWED_ORIGINS
+        sync: false
+      - key: DAILY_REQUEST_BUDGET
+        value: '200'
+      - key: MONTHLY_REQUEST_BUDGET
+        value: '3000'
+      - key: TRUST_PROXY
+        value: 'false'

@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "Typer.AI",
+  "version": "0.1.0",
+  "description": "Your words, less typing. Document-grounded gray autocomplete with Tab to accept.",
+  "minimum_chrome_version": "120",
+  "permissions": ["storage"],
+  "optional_host_permissions": ["https://*/*", "http://localhost/*", "http://127.0.0.1/*"],
+  "background": { "service_worker": "background.js" },
+  "action": { "default_popup": "popup.html", "default_title": "Typer.AI settings" },
+  "content_scripts": [{
+    "matches": ["http://*/*", "https://*/*"],
+    "js": ["engine.js", "editor.js", "content.js"],
+    "run_at": "document_idle",
+    "all_frames": true,
+    "match_about_blank": true
+  }],
+  "content_security_policy": { "extension_pages": "script-src 'self'; object-src 'none'" }
+}
