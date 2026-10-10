@@ -38,7 +38,7 @@ To update the demo's downloaded extension, set the GitHub repository variable `T
 
 ## Budget limits
 
-Global attempt limits are durable across service restarts if the SQLite volume persists. They cap request count, not exact currency. Excerpts have a 6,000-character limit, titles 300 characters, and responses at most 2,400 output tokens for Gemini or 600 for OpenAI. Model pricing changes and tokenization varies. Configure provider-side spending controls and alerts too.
+Global attempt limits are durable across service restarts if the SQLite volume persists. They cap request count, not exact currency. Excerpts have a 6,000-character limit, titles 300 characters, and responses at most 4,096 output tokens for Gemini or 1,600 for OpenAI. Model pricing changes and tokenization varies. Configure provider-side spending controls and alerts too.
 
 This no-account design trades stronger per-user identity for quick onboarding. Origin spoofing, IP rotation and shared networks are limitations. Before large-scale distribution, add abuse monitoring without document logging, managed edge rate limits, and a shared quota store if scaling horizontally.
 

@@ -3,7 +3,7 @@
   if (globalThis.__typerLoaded) return;
   globalThis.__typerLoaded = true;
   const E = TyperEditor;
-  let settings = { enabled: true, threshold: 0.82, cloud: false, excluded: [] };
+  let settings = { enabled: true, threshold: 0.78, cloud: false, excluded: [] };
   let active = null, engine = new TyperEngine(), ranks = [], indexedText = '', title = '', lastIndex = 0;
   let composing = false, suggestion = null, signature = '', epoch = 0, lastCloud = 0, lastExcerpt = '', dismissed = '';
   let rebuildTimer, cloudTimer, frame;

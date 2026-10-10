@@ -1,7 +1,7 @@
 /* Shared by the extension, demo and Node tests. No network on the typing path. */
 (function (root) {
   'use strict';
-  const TOKEN = /[\p{L}\p{N}]+(?:['’\-][\p{L}\p{N}]+)*/gu;
+  const TOKEN = /[\p{L}\p{N}]+(?:['’\-][\p{L}\p{N}]+)*(?:\+{1,2}|#)?/gu;
   const STOP = new Set('a an the and or but of in on to for with is are was were be this that it as by at from however therefore'.split(' '));
   const normalize = s => s.toLocaleLowerCase('en-US');
   const tokens = s => [...s.matchAll(TOKEN)].map(m => ({ text: m[0], key: normalize(m[0]), start: m.index, end: m.index + m[0].length }));
@@ -46,8 +46,8 @@
       // Discard vocabulary from the previous background response, including on opt-out.
       for (const [key, word] of this.words) if (word.inferred) this.words.delete(key);
       this.cloudPhrases = [];
-      for (const term of (Array.isArray(ranks) ? ranks : []).slice(0, 60)) {
-        if (typeof term !== 'string' || term.length > 100 || !/^[\p{L}\p{N}]+(?:['’\-][\p{L}\p{N}]+)*(?: [\p{L}\p{N}]+(?:['’\-][\p{L}\p{N}]+)*){0,4}$/u.test(term)) continue;
+      for (const term of (Array.isArray(ranks) ? ranks : []).slice(0, 80)) {
+        if (typeof term !== 'string' || term.length > 100 || !/^[\p{L}\p{N}]+(?:['’\-][\p{L}\p{N}]+)*(?:\+{1,2}|#)?(?: [\p{L}\p{N}]+(?:['’\-][\p{L}\p{N}]+)*(?:\+{1,2}|#)?){0,4}$/u.test(term)) continue;
         this.cloudPhrases.push(term);
         for (const t of tokens(term)) {
           if (t.key.length < 3 || t.key.length > 64 || STOP.has(t.key)) continue;
@@ -62,11 +62,11 @@
         this.prefixes.get(prefix).push(word);
       }
     }
-    predict(before, threshold = 0.82, after = '') {
+    predict(before, threshold = 0.78, after = '') {
       if (!before || /^[\p{L}\p{N}]/u.test(after)) return null;
-      const match = before.match(/([\p{L}\p{N}]+(?:['’\-][\p{L}\p{N}]+)*)$/u);
+      const match = before.match(/([\p{L}\p{N}]+(?:['’\-][\p{L}\p{N}]+)*(?:\+{1,2}|#)?)$/u);
       if (!match) return null; // No guesses after 'however,' or at blank line starts.
-      const partial = match[1], key = normalize(partial), candidates = this.prefixes.get(key)?.filter(w => !this.words.get(w).inferred || key.length >= 3);
+      const partial = match[1], key = normalize(partial), candidates = this.prefixes.get(key)?.filter(w => !this.words.get(w).inferred || key.length >= (threshold >= .9 ? 3 : 2));
       if (!candidates?.length) return null;
       const preceding = tokens(before.slice(Math.max(0, before.length - 250), before.length - partial.length)).map(t => t.key);
       let evidence;
@@ -83,7 +83,7 @@
       const best = ranked[0], total = ranked.reduce((s, t) => s + t.score, 0);
       const margin = best.score / total;
       // A confidence score is a heuristic evidence gate, NOT a calibrated probability.
-      const support = best.heading || best.count >= 2 || key.length >= 3 || best.contextual;
+      const support = best.heading || best.count >= 2 || key.length >= 3 || (best.inferred && key.length >= 2) || best.contextual;
       const confidence = Math.min(0.99, 0.52 + 0.39 * margin + Math.min(key.length, 5) * 0.014 + (best.contextual ? 0.04 : 0));
       if (!support || confidence < threshold || (key.length === 1 && margin < 0.72 && !best.contextual)) return null;
       let word = best.word;
@@ -93,9 +93,9 @@
       let suffix = word.slice(partial.length), sequence = [...preceding, best.key], phraseConfidence = confidence;
       // Related phrases are weaker evidence than repetitions in the actual draft.
       const related = (this.cloudPhrases || []).filter(term => normalize(term).startsWith(best.key + ' '));
-      if (key.length >= 3 && threshold <= .78 && related.length === 1) {
+      if (!best.contextual && key.length >= 2 && threshold <= .80 && related.length === 1) {
         suffix += related[0].slice(best.key.length);
-        return { suffix, confidence: Math.min(confidence, .78), source: 'cloud-ranked' };
+        return { suffix, confidence: Math.min(confidence, .80), source: 'cloud-ranked' };
       }
       // Extend only with repeated, dominant continuation evidence. Threshold, not word-count UI.
       for (let step = 0; step < 7; step++) {

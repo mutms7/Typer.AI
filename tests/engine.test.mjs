@@ -4,7 +4,7 @@ import { createRequire } from 'node:module';
 const { Engine } = createRequire(import.meta.url)('../extension/engine.js');
 test('document-grounded vector completion, never a generic continuation', () => {
   const e = new Engine().index('A vector has magnitude. A vector has direction. The vector represents displacement.', 'Vectors');
-  assert.equal(e.predict('A v').suffix, 'ector');
+  assert.equal(e.predict('A v', .82).suffix, 'ector');
   assert.equal(e.predict('however,'), null);
   assert.equal(e.predict('however, '), null);
   assert.equal(e.predict(''), null);
@@ -21,7 +21,9 @@ test('confidence gates ambiguity and repeated phrase length', () => {
 test('related cloud words require a stronger prefix and clear on opt-out', () => {
   const e = new Engine().index('A vector has magnitude.', 'Vectors');
   e.setRanks(['eigenvalue', 'vector']);
-  assert.equal(e.predict('ei', .65), null);
+  assert.equal(e.predict('e', .65), null);
+  assert.equal(e.predict('ei', .78).suffix, 'genvalue');
+  assert.equal(e.predict('ei', .9), null);
   assert.equal(e.predict('eig', .82).suffix, 'envalue');
   assert.equal(e.predict('A ve').source, 'cloud-ranked');
   e.setRanks([]);
@@ -41,8 +43,8 @@ test('inferred phrases respect confidence and do not invent sentence evidence', 
 });
 test('case, mid-word safety and indexing isolation', () => {
   const e = new Engine().index('A vector has magnitude. A vector has direction.', 'Vector');
-  assert.equal(e.predict('A V').suffix, 'ector');
-  assert.equal(e.predict('A VE').suffix, 'CTOR');
+  assert.equal(e.predict('A V', .82).suffix, 'ector');
+  assert.equal(e.predict('A VE', .82).suffix, 'CTOR');
   assert.equal(e.predict('A v', .82, 'ector'), null);
   e.index('A matrix transforms coordinates.', 'Matrix');
   assert.equal(e.predict('vec'), null);
@@ -54,8 +56,26 @@ test('phrase evidence never crosses sentence punctuation', () => {
 });
 test('unicode document vocabulary and weak one-off prefixes', () => {
   const e = new Engine().index('Énergie et accélération. Énergie et accélération.', 'Énergie');
-  assert.equal(e.predict('éne').suffix, 'rgie');
+  assert.equal(e.predict('éne', .82).suffix, 'rgie');
   assert.equal(new Engine().index('velocity', '').predict('v'), null);
+});
+test('80th cloud term remains usable and default completes repeated phrases', () => {
+  const e = new Engine().index('We study vectors.', 'Vectors');
+  e.setRanks([...Array.from({ length: 79 }, (_, i) => 'topic' + i), 'quaternion']);
+  assert.equal(e.predict('qu').suffix, 'aternion');
+  e.index('A vector has magnitude. A vector has direction.', 'Vectors');
+  assert.equal(e.predict('A v').suffix, 'ector has');
+});
+test('technical language names preserve plus suffixes during completion', () => {
+  const e = new Engine().index('A software engineering internship.', 'Job opportunity');
+  e.setRanks(['C++', 'JavaScript']);
+  assert.equal(e.predict('I use C+').suffix, '+');
+  assert.equal(e.predict('ja').suffix, 'vascript');
+});
+test('observed context wins over a related cloud phrase', () => {
+  const e = new Engine().index('A linear transformation maps vectors. A linear transformation changes coordinates.', 'Linear transformations');
+  e.setRanks(['transformation matrix']);
+  assert.equal(e.predict('This is a linear tr').suffix, 'ansformation');
 });
 test('unfinished current token does not hide a useful shorter context', () => {
   const text = 'A vector has a magnitude and a direction. Vector addition combines two vectors. The vector space contains vectors and their linear combinations.\n\nThe vector represents a displacement. The vector represents a displacement.\n\nA v';

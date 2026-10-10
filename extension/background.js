@@ -1,5 +1,5 @@
 importScripts('config.js');
-const DEFAULTS = { enabled: true, threshold: 0.82, cloud: false, excluded: [] };
+const DEFAULTS = { enabled: true, threshold: 0.78, cloud: false, excluded: [] };
 const ready = chrome.storage.local.setAccessLevel({ accessLevel: 'TRUSTED_CONTEXTS' });
 const pending = new Map(), recent = new Map();
 async function settings() {
@@ -29,7 +29,7 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
       });
       if (!res.ok) return { terms: [], status: 'Local predictions active. Cloud ranking unavailable.' };
       const data = await res.json();
-      return { terms: Array.isArray(data.terms) ? data.terms.filter(x => typeof x === 'string').slice(0, 60) : [] };
+      return { terms: Array.isArray(data.terms) ? data.terms.filter(x => typeof x === 'string').slice(0, 80) : [] };
     } catch { return { terms: [], status: 'Local predictions active. Cloud ranking unavailable.' }; }
     finally { clearTimeout(timer); pending.delete(id); }
   })().then(reply).catch(() => reply({ terms: [] }));

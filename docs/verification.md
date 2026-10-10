@@ -4,9 +4,9 @@ Verified locally on October 10, 2026 with Node.js 24.11.1 and Microsoft Edge dri
 
 ## Automated checks
 
-`npm test` passes 13 checks covering document-grounded completion, punctuation abstention, confidence-based phrase extension, ambiguous prefixes, cloud vocabulary isolation, case and Unicode behavior, mid-word safety, document reset, unfinished-prefix context backoff, provider response validation, quota persistence and HTTP endpoint behavior.
+`npm test` passes 16 checks covering document-grounded completion, punctuation abstention, confidence-based phrase extension, ambiguous prefixes, cloud vocabulary isolation, case and Unicode behavior, mid-word safety, document reset, unfinished-prefix context backoff, provider response validation, quota persistence and HTTP endpoint behavior.
 
-Provider tests inspect mocked Gemini and OpenAI request schemas. Real Gemini 3.5 Flash-Lite calls generated 12 math terms and 20 email terms for the public demo. These samples establish a working provider call, not general accuracy or production performance. Browser checks confirm Tab completion, undo, titles inside the draft, zero-width animation carets, left alignment and mobile layout.
+Provider tests inspect mocked Gemini and OpenAI request schemas. Real Gemini 3.5 Flash-Lite calls generated 80 math terms and 80 email terms for the public demo. These samples establish a working provider call, not general accuracy or production performance. Browser checks confirm Tab completion, undo, titles inside the draft, zero-width animation carets, left alignment and mobile layout.
 
 ## Installed extension checks
 
@@ -19,3 +19,7 @@ The browser smoke snippet is saved in `tests/browser-smoke.js`. Run with Playwri
 ## Limits
 
 No claim of compatibility with every web editor, a Web Store submission, a live shared cloud deployment, measured user adoption, calibrated probabilities, improved memory retention, or measured human writing speed is made. Engine microbenchmarks exclude rendering and network time.
+
+## Modeled API request reduction
+
+`node scripts/request-model.mjs` compares a 10-minute, single-editor session at 50 WPM (five characters per word) with one request per character. The baseline is 2,500 requests; a 45-second minimum refresh interval permits at most 14 background calls, including the initial call. That is a modeled 99.44% reduction. Idle delays and unchanged excerpts can reduce calls further. This is not production telemetry or a claim about writing speed, accuracy, or API cost. Switching editors starts a new refresh window.

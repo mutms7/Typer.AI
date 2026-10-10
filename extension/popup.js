@@ -1,5 +1,5 @@
 (async () => {
-  const defaults = { enabled: true, threshold: 0.82, cloud: false, excluded: [] };
+  const defaults = { enabled: true, threshold: 0.78, cloud: false, excluded: [] };
   const data = await chrome.storage.local.get('settings');
   const settings = { ...defaults, ...data.settings };
   const enabled = document.querySelector('#enabled'), threshold = document.querySelector('#threshold'), cloud = document.querySelector('#cloud'), site = document.querySelector('#site'), status = document.querySelector('#status');
