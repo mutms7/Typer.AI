@@ -3,6 +3,9 @@ WORKDIR /app
 COPY package.json ./
 COPY server ./server
 COPY public ./public
+COPY extension ./extension
+COPY scripts ./scripts
+RUN node scripts/package.mjs
 ENV NODE_ENV=production HOST=0.0.0.0 PORT=8787 DATA_DIR=/data
 RUN mkdir /data && chown node:node /data
 USER node

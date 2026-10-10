@@ -1,13 +1,52 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Document-grounded autocomplete that keeps up with your thoughts. Try Typer.AI's local prediction engine."><title>Typer.AI · Your words, less typing</title><link rel="stylesheet" href="style.css"><link rel="icon" href="favicon.svg"></head>
-<body><nav><a class="brand" href="./"><span class="logo" aria-hidden="true">t<span>↹</span></span>Typer<span class="ai">.AI</span></a><div><a href="https://github.com/mutms7/Typer.AI">Source</a><a class="install" href="typer-ai.zip" download>Get the extension <span aria-hidden="true">↗</span></a></div></nav>
-<main><section class="intro"><p class="eyebrow">A little ahead of your keyboard.</p><h1>Keep the thought.<br><span>Skip the repeated typing.</span></h1><p class="lede">You know what you want to say. Typer learns the words in your document and quietly offers the rest. Your voice stays yours.</p><div class="facts"><span>Chrome + Edge</span><span>No account</span><span>Local by default</span></div></section>
-<section class="workspace" aria-labelledby="demo-title"><div class="workspace-bar"><h2 id="demo-title">Try it on your own words</h2><span class="status-dot">Local engine active</span></div><div class="workspace-body"><aside><p class="small-label">Prediction confidence</p><label for="confidence" class="confidence-label"><span id="confidence-label">Balanced</span><output id="confidence-value">82</output></label><input data-typer-ignore id="confidence" type="range" min="65" max="96" value="82" aria-describedby="confidence-description"><p id="confidence-description">Move right for more certainty. Move left to complete familiar phrases.</p><div class="divider"></div><p class="small-label">Start with an example</p><button id="vectors" class="example selected" type="button"><span>01</span> Vectors <span aria-hidden="true">↗</span></button><button id="transformations" class="example" type="button"><span>02</span> Transformations <span aria-hidden="true">↗</span></button><div class="divider"></div><label class="toggle" for="enabled">Suggestions <input id="enabled" type="checkbox" checked role="switch"></label><p class="privacy">This demo runs in your browser. It doesn’t upload or save your notes.</p></aside>
-<div class="paper"><div class="paper-heading"><span id="document-title">Vectors & linear algebra</span><span class="paper-meta">Practice notes</span></div><label class="sr-only" for="notes">Practice notes</label><textarea id="notes" spellcheck="false" data-typer-title="Vectors & linear algebra">A vector has a magnitude and a direction. Vector addition combines two vectors. The vector space contains vectors and their linear combinations.
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Keep the thought. Skip the repeated typing. Typer.AI completes familiar words from your document while you stay in control.">
+  <title>Typer.AI</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="favicon.svg">
+  <link rel="preload" href="fonts/dm-sans.ttf" as="font" type="font/ttf" crossorigin>
+</head>
+<body>
+  <nav aria-label="Main navigation">
+    <a class="brand" href="./" aria-label="Typer.AI home">
+      <svg class="logo" viewBox="0 0 38 38" aria-hidden="true"><rect width="38" height="38" rx="12" fill="currentColor"/><path d="M12 12h13M18 12v15M23 23h7m-3-3 3 3-3 3" fill="none" stroke="white" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span class="brand-animation" aria-hidden="true"><span class="brand-reserve">typer.ai</span><span class="brand-live"><span id="brand-typed">typer.ai</span><span id="brand-ghost" class="completion"></span><span id="brand-caret" class="typing-caret" hidden></span></span><kbd id="brand-tab" class="animation-tab" hidden>Tab</kbd></span>
+    </a>
+    <div class="nav-actions"><a class="source" href="https://github.com/mutms7/Typer.AI">GitHub</a><a class="install" href="typer-ai.zip" download>Get the extension <span aria-hidden="true">↗</span></a></div>
+  </nav>
+  <main>
+    <section class="intro">
+      <h1 aria-label="Keep the thought. Skip the repeated typing.">
+        <span class="animated-line" aria-hidden="true"><span class="line-reserve">Keep the thought.</span><span class="line-live"><span id="keep-typed">Keep the thought.</span><span id="keep-ghost" class="completion"></span><span id="keep-caret" class="typing-caret" hidden></span><kbd id="keep-tab" class="animation-tab" hidden>Tab</kbd></span></span>
+        <span class="animated-line second-line" aria-hidden="true"><span class="line-reserve">Skip the repeated typing.</span><span class="line-live"><span id="skip-typed">Skip the repeated typing.</span><span id="skip-ghost" class="completion"></span><span id="skip-caret" class="typing-caret" hidden></span><kbd id="skip-tab" class="animation-tab" hidden>Tab</kbd></span></span>
+      </h1>
+      <p class="lede">You know what you want to say. Typer completes the familiar words, so your typing can keep up with your thoughts.</p>
+      <button id="animation-toggle" class="animation-toggle" type="button" aria-label="Pause typing animations" aria-pressed="false"><svg id="pause-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3v10M11 3v10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span id="animation-label">Pause animation</span></button>
+    </section>
+    <section class="workspace" aria-labelledby="demo-title">
+      <div class="workspace-bar"><h2 id="demo-title">Demo</h2><div class="example-options" role="group" aria-label="Choose a writing example"><button id="email" class="example selected" aria-pressed="true" type="button">Email</button><button id="meeting" class="example" aria-pressed="false" type="button">Meeting notes</button></div></div>
+      <div class="workspace-body">
+        <div class="paper"><div class="paper-heading" id="document-title">Friday’s project update</div><label class="sr-only" for="notes">Your draft</label><textarea id="notes" spellcheck="false" data-typer-title="Friday project update">Hi Jamie,
 
-The vector represents a displacement. The vector represents a displacement.
+Thanks for the project update. I’ll share the project update with the team before Friday’s meeting.
 
-A v</textarea><div class="editor-footer"><span><kbd>Tab</kbd> accept <kbd>Esc</kbd> dismiss</span><span id="timing">Type a word to see a suggestion.</span></div></div></div><div class="workspace-note">Try <code>v</code> to complete <code>vector</code>, or <code>however,</code> to see Typer leave the next thought to you.</div></section>
-<section class="explanation"><div><span class="small-label">The idea</span><h2>Fast enough to stay<br>out of your way.</h2></div><div><p>Calling a language model after every letter adds a round trip to every thought. Typer takes a different approach: AI ranks your document’s vocabulary in the background, then a local engine handles the next keystroke.</p><p>The suggestion appears as gray text. Keep typing, dismiss it, or press Tab. Familiar phrases can continue when the evidence is strong. Typer never inserts anything on its own.</p><a href="https://github.com/mutms7/Typer.AI/blob/main/docs/architecture.md">Read the architecture <span aria-hidden="true">↗</span></a></div></section>
-<section class="rich-demo"><h2>Also try a rich text editor</h2><p>Place your cursor after the final “tr”, then press Tab. The same engine works in ordinary editable web documents.</p><div id="rich-notes" contenteditable="true" role="textbox" aria-label="Rich text practice notes" aria-multiline="true" data-typer-title="Transformation on x"><p>A transformation on x changes the input. The transformation on x maps coordinates.</p><p>This is a tr</p></div></section>
-<section class="setup"><h2>Install in Chrome or Edge</h2><p>Download and unzip the extension. Open your browser’s Extensions page, enable Developer mode, and choose “Load unpacked”. Select the unzipped folder containing <code>manifest.json</code>, then refresh your writing page.</p><p>Supports ordinary text inputs, textareas, and contenteditable editors. Google Docs, canvas editors, closed shadow roots, and browser-protected pages aren’t supported in this release.</p></section></main><footer class="site-footer"><span>Typer.AI</span><span>Your words. Your pace.</span><a href="privacy.html">Privacy</a></footer><script src="engine.js"></script><script src="editor.js"></script><script src="content.js"></script><script src="demo.js"></script></body></html>
+I’ve added my feedback below. Let me know if you have any questions.
+
+Your pro</textarea><div class="editor-footer"><span><kbd>Tab</kbd> accept <kbd>Esc</kbd> dismiss</span><button id="reset-example" class="reset-example" type="button">Reset draft</button></div></div>
+        <aside><label for="confidence" class="confidence-label">Confidence <output id="confidence-label">Balanced</output></label><input data-typer-ignore id="confidence" type="range" min="65" max="96" value="82" aria-describedby="confidence-description"><p id="confidence-description">More certainty, or more of the phrase. You decide.</p><label class="toggle" for="enabled">Suggestions <input id="enabled" type="checkbox" checked role="switch"></label><p class="privacy">Your draft stays in this browser.</p></aside>
+      </div>
+      <p id="demo-hint" class="workspace-note">Click at the end of “pro”, then press Tab. Lower the confidence to complete a familiar phrase.</p>
+    </section>
+    <section class="philosophy" aria-labelledby="philosophy-title">
+      <h2 id="philosophy-title">Your ideas.<br> Just a little faster.</h2>
+      <div><p>When you write an email, take notes, or work through an idea, the thought should come from you. But typing the same words again and again can slow you down.</p><p>Typer learns the words in your document and offers the rest in gray. Press Tab when it’s what you meant. Keep typing when it isn’t. You choose the words, the direction, and the voice.</p><p>Cloud-connected versions periodically rank your document’s vocabulary with AI. The next keystroke is handled locally, so your writing never has to wait for a model to answer.</p></div>
+    </section>
+    <details class="installation"><summary>Install in Chrome or Edge <span aria-hidden="true">+</span></summary><div><p>Download and unzip the extension. Open your browser’s Extensions page, enable Developer mode, and choose “Load unpacked”. Select the folder containing <code>manifest.json</code>, then refresh your writing page.</p><p>Works with ordinary text inputs, textareas, and editable web documents. Google Docs and canvas editors aren’t supported in this release. The current download runs locally without an account or API key.</p></div></details>
+  </main>
+  <footer class="site-footer"><a href="https://github.com/mutms7/Typer.AI">Source</a><a href="privacy.html">Privacy</a></footer>
+  <script src="engine.js"></script><script src="editor.js"></script><script src="content.js"></script><script src="animation-timeline.js"></script><script src="animations.js"></script><script src="demo.js"></script>
+</body>
+</html>

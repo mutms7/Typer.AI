@@ -1,26 +1,33 @@
 (() => {
   const notes = document.querySelector('#notes'), title = document.querySelector('#document-title');
   const confidence = document.querySelector('#confidence'), enabled = document.querySelector('#enabled');
+  let current = 'email';
+  const samples = {
+    email: {
+      title: 'Friday’s project update',
+      text: 'Hi Jamie,\n\nThanks for the project update. I’ll share the project update with the team before Friday’s meeting.\n\nI’ve added my feedback below. Let me know if you have any questions.\n\nYour pro',
+      hint: 'Click at the end of “pro”, then press Tab. Lower the confidence to complete a familiar phrase.'
+    },
+    meeting: {
+      title: 'Planning the birthday party',
+      text: 'We’re planning a birthday party for Sam. The birthday party will be at the park on Saturday.\n\nJamie will bring the birthday cake. Alex will pick up the birthday cake on the way to the park.\n\nRemember to bring the birth',
+      hint: 'Click at the end of “birth”, then press Tab. Typer uses the words already in these notes.'
+    }
+  };
   function update() {
     const threshold = Number(confidence.value) / 100;
-    document.querySelector('#confidence-label').textContent = threshold >= .9 ? 'Conservative' : threshold < .78 ? 'Expansive' : 'Balanced';
-    document.querySelector('#confidence-value').value = confidence.value;
+    document.querySelector('#confidence-label').value = threshold >= .9 ? 'Conservative' : threshold < .78 ? 'Expansive' : 'Balanced';
     window.dispatchEvent(new CustomEvent('typer-settings', { detail: { threshold, enabled: enabled.checked } }));
   }
+  function load(id) {
+    current = id;
+    title.textContent = samples[id].title; notes.dataset.typerTitle = samples[id].title; notes.value = samples[id].text;
+    document.querySelector('#demo-hint').textContent = samples[id].hint;
+    document.querySelectorAll('.example').forEach(el => { const selected = el.id === id; el.classList.toggle('selected', selected); el.setAttribute('aria-pressed', String(selected)); });
+    notes.focus({ preventScroll: true }); notes.setSelectionRange(notes.value.length, notes.value.length);
+    notes.dispatchEvent(new InputEvent('input', { bubbles: true }));
+  }
   confidence.addEventListener('input', update); enabled.addEventListener('change', update);
-  const samples = {
-    vectors: ['Vectors & linear algebra', 'A vector has a magnitude and a direction. Vector addition combines two vectors. The vector space contains vectors and their linear combinations.\n\nThe vector represents a displacement. The vector represents a displacement.\n\nA v'],
-    transformations: ['Transformation on x', 'A transformation on x changes the input. A transformation on x maps coordinates. The transformation on x preserves a relationship between the original and the result.\n\nThis is a tr']
-  };
-  for (const id of Object.keys(samples)) document.querySelector('#' + id).addEventListener('click', () => {
-    title.textContent = samples[id][0]; notes.dataset.typerTitle = samples[id][0]; notes.value = samples[id][1];
-    document.querySelectorAll('.example').forEach(el => el.classList.toggle('selected', el.id === id));
-    notes.focus(); notes.setSelectionRange(notes.value.length, notes.value.length); notes.dispatchEvent(new InputEvent('input', { bubbles: true }));
-  });
-  notes.addEventListener('input', () => {
-    const engine = new TyperEngine().index(notes.value, notes.dataset.typerTitle), start = performance.now();
-    const prediction = engine.predict(notes.value.slice(0, notes.selectionStart), Number(confidence.value) / 100, notes.value.slice(notes.selectionEnd));
-    const elapsed = performance.now() - start;
-    document.querySelector('#timing').textContent = prediction ? 'Local lookup: ' + elapsed.toFixed(2) + ' ms' : 'Waiting for a clear match.';
-  });
+  for (const id of Object.keys(samples)) document.querySelector('#' + id).addEventListener('click', () => load(id));
+  document.querySelector('#reset-example').addEventListener('click', () => load(current));
 })();
