@@ -7,7 +7,7 @@ Users don't provide API keys. The extension uses your backend, and only that bac
 Use Node.js 24 on a VM/container with persistent storage. A Dockerfile and Render blueprint are included. Render's persistent disk configuration is a paid plan; free hosting and free cloud inference are not promised. You can also host the Node service yourself.
 
 1. Copy `.env.example` to `.env` for local testing, or set equivalent environment variables in your host's secret manager.
-2. Set `AI_PROVIDER=gemini`, `GEMINI_API_KEY`, `GEMINI_MODEL=gemini-3.5-flash-lite`, a random stable `IP_HASH_SECRET`, and `ALLOWED_ORIGINS`. Alternatively choose `AI_PROVIDER=openai` and `OPENAI_API_KEY`. Use exact origins, such as `https://mutms7.github.io` and `chrome-extension://YOUR_EXTENSION_ID`.
+2. Set `AI_PROVIDER=gemini`, `GEMINI_API_KEY`, `GEMINI_MODEL=gemini-3.1-flash-lite`, a random stable `IP_HASH_SECRET`, and `ALLOWED_ORIGINS`. Alternatively choose `AI_PROVIDER=openai` and `OPENAI_API_KEY`. Use exact origins, such as `https://mutms7.github.io` and `chrome-extension://YOUR_EXTENSION_ID`.
 3. Mount a persistent directory at `DATA_DIR`. Keep exactly one server instance for SQLite quotas.
 4. Set `HOST=0.0.0.0` in a container. Terminate TLS at your host or trusted reverse proxy.
 5. Configure daily/monthly request budgets, per-IP hourly limits and concurrency. Start conservatively. Failed attempts consume allowances.

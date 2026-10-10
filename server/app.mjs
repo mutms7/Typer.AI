@@ -35,7 +35,7 @@ export function createApp(config, provider = rankVocabulary) {
         if (!ledger.reserve(ip)) return json(429, { error: 'Ranking limit reached. Local predictions remain available.' });
         // Every provider attempt consumes a durable allowance, including failed attempts.
         inflight++;
-        const controller = new AbortController(), timer = setTimeout(() => controller.abort(), 10000);
+        const controller = new AbortController(), timer = setTimeout(() => controller.abort(), 30000);
         const onClose = () => { if (!res.writableEnded) controller.abort(); };
         res.on('close', onClose);
         try { const terms = await provider(body, config, controller.signal); return json(200, { terms }); }

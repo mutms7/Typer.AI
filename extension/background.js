@@ -20,7 +20,7 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
     if (typeof message.text !== 'string' || message.text.length > 6000 || typeof message.title !== 'string' || message.title.length > 300) return { terms: [] };
     recent.set(id, Date.now());
     const controller = new AbortController(); pending.set(id, controller);
-    const timer = setTimeout(() => controller.abort(), 12000);
+    const timer = setTimeout(() => controller.abort(), 32000);
     try {
       const res = await fetch(TYPER_CONFIG.apiUrl + '/api/rank', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },

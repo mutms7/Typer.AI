@@ -58,7 +58,8 @@
     try {
       const result = await chrome.runtime.sendMessage({ type: 'rank', text, title: currentTitle(active) });
       if (version !== epoch || editor !== active || !settings.cloud || !allowed()) return;
-      ranks = result?.terms || []; engine.setRanks(ranks); schedule();
+      // A failed or throttled refresh must not erase the useful current cache.
+      if (result?.terms?.length) { ranks = result.terms; engine.setRanks(ranks); schedule(); }
     } catch { /* Local engine keeps working when extension context is gone. */ }
   }
   function focus(target) {

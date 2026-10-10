@@ -39,7 +39,7 @@ Open `http://127.0.0.1:8787` for the interactive demo. Load `dist/extension` in 
 - Escape dismissal, composition handling, selection checks, scroll positioning, paused sites, and a global off switch.
 - Optional structured-output Gemini or OpenAI vocabulary ranking in the background, prioritizing connective words and familiar sentence fragments, with a 107-word offline dictionary and closely related unseen wording. Inferred words need at least two typed characters; the typing path stays local.
 - Owner-only API key, exact-origin access policy, bounded excerpts and output, durable SQLite daily/monthly request budgets, per-IP limits, and concurrency control.
-- No accounts, document persistence, telemetry, or writing history. Provider retention is governed by OpenAI's own policies.
+- No accounts, document persistence, telemetry, or writing history. Provider retention is governed by the configured provider's policies.
 
 ## Compatibility
 
@@ -51,7 +51,7 @@ The first 30,000 characters are indexed locally. Long documents remain editable,
 
 ## Cloud mode and costs
 
-The API key goes only in the backend's `OPENAI_API_KEY` environment variable. Package a cloud-connected extension with `TYPER_API_URL=https://your-server.example` (no key in the extension). See [deployment instructions](docs/deployment.md).
+The API key goes only in the backend's `GEMINI_API_KEY` environment variable (or `OPENAI_API_KEY` for OpenAI). Package a cloud-connected extension with `TYPER_API_URL=https://your-server.example` (no key in the extension). See [deployment instructions](docs/deployment.md).
 
 Cloud mode is optional and off by default because excerpts leave the device. Excerpts refresh after an idle interval, no more than once every 45 seconds per active frame, and only when changed. Local completion continues if the provider is slow, offline, or over quota.
 
@@ -59,7 +59,7 @@ Request budgets are hard limits on reserved provider attempts. They are not exac
 
 ## Status
 
-This repository includes a functional local extension, browser demo, tested shared-key backend, packaging, and CI/Pages workflows. Live cloud ranking requires the owner to provision the backend and set the key. The initial verification used mocked provider responses. The updated public demo uses real Gemini 3.5 Flash-Lite vocabulary responses for its two public samples, generated on October 10, 2026. Visitor edits are never uploaded by the static demo. Resume adoption figures are not product telemetry and are not claimed here.
+This repository includes a functional local extension, browser demo, tested shared-key backend, packaging, and CI/Pages workflows. Live cloud ranking requires the owner to provision the backend and set the key. The initial verification used mocked provider responses. The updated public demo uses real Gemini 3.1 Flash-Lite vocabulary responses for its two public samples, generated on October 10, 2026. Visitor edits are never uploaded by the static demo. Resume adoption figures are not product telemetry and are not claimed here.
 
 ## License
 
