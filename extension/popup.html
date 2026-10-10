@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Typer.AI</title><link rel="stylesheet" href="popup.css"></head>
-<body><header><span class="mark" aria-hidden="true">t<span>↹</span></span><div><h1>Typer.AI</h1><p>Your words, less typing.</p></div></header>
+<body><header><img class="mark" src="logo.svg" width="48" height="48" alt="" aria-hidden="true"><div><h1>Typer.AI</h1><p>Your words, less typing.</p></div></header>
 <main><label class="row" for="enabled"><span>Suggestions</span><input id="enabled" type="checkbox" role="switch"></label>
 <section><label for="threshold">Prediction confidence <output id="level">Balanced</output></label><input type="range" id="threshold" min="65" max="96" step="1" aria-describedby="confidence-help"><p id="confidence-help">Higher confidence gives shorter, more certain suggestions. Lower confidence can complete familiar phrases.</p></section>
 <label class="row" for="cloud"><span>Background AI ranking</span><input id="cloud" type="checkbox" role="switch" aria-describedby="cloud-help"></label><p id="cloud-help">When enabled, excerpts from the active document go to Typer.AI's server and its AI provider (Google Gemini or OpenAI). Google’s free tier may use requests to improve its products. No account or API key needed. Local predictions work either way.</p>

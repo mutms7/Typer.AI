@@ -1,12 +1,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, rm } from 'node:fs/promises';
+import { mkdtemp, rm, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { createApp } from '../server/app.mjs';
 import { vocabularyTerms, rankWithOpenAI, rankWithGemini, VOCABULARY_PROMPT } from '../server/provider.mjs';
 import { Ledger } from '../server/ledger.mjs';
 import { checkDeployment } from '../scripts/check-deployment.mjs';
+const version = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8')).version;
 const base = { apiKey: 'test-key-not-real', model: 'gpt-4.1-mini', ipSecret: 'test-secret', daily: 2, monthly: 4, perIp: 2, concurrent: 2, trustProxy: false, origins: ['http://test.local'], publicDir: resolve('public') };
 test('provider schema, no stored response, bounded extrapolated vocabulary', async () => {
   assert.deepEqual(vocabularyTerms(['vector', 'eigenvalue', 'vector', '<script>', 'transformation on x', 'one two three four five six']), ['vector','eigenvalue','transformation on x']);
@@ -84,7 +85,7 @@ test('missing key returns a recoverable cloud status without consuming provider 
     assert.equal((await fetch(url + '/health')).status, 200);
     const ready = await fetch(url + '/ready');
     assert.equal(ready.status, 503);
-    assert.deepEqual(await ready.json(), { ok: false, databaseReady: true, cloudConfigured: false, version: '0.1.1' });
+    assert.deepEqual(await ready.json(), { ok: false, databaseReady: true, cloudConfigured: false, version });
     await assert.rejects(checkDeployment(url, 'http://test.local'), /Readiness check failed/);
     const res = await fetch('http://127.0.0.1:' + app.address().port + '/api/rank', { method: 'POST', headers: { Origin: 'http://test.local', 'Content-Type': 'application/json' }, body: JSON.stringify({ text: 'A vector has magnitude and direction.', title: 'Vectors' }) });
     assert.equal(res.status, 503);

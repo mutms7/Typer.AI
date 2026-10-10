@@ -61,7 +61,7 @@ Request budgets are hard limits on reserved provider attempts. They are not exac
 
 ## Status
 
-Version 0.1.1 is an unpacked beta with optional live Gemini refreshes through https://typer-ai.onrender.com. Hosting uses Render Free and a dedicated Supabase Free database for durable request counters. A live browser-extension refresh was verified on October 10, 2026. Cloud mode is off by default; the free backend can sleep and request limits apply. The public demo uses precomputed Gemini 3.1 Flash-Lite responses for its two public samples. Visitor edits are never uploaded by the static demo. Resume adoption figures are not product telemetry and are not claimed here.
+Version 0.1.2 is an unpacked beta with optional live Gemini refreshes through https://typer-ai.onrender.com. Hosting uses Render Free and a dedicated Supabase Free database for durable request counters. A live browser-extension refresh was verified on October 10, 2026. Cloud mode is off by default; the free backend can sleep and request limits apply. The public demo uses precomputed Gemini 3.1 Flash-Lite responses for its two public samples. Visitor edits are never uploaded by the static demo. Resume adoption figures are not product telemetry and are not claimed here.
 
 ## License
 

@@ -1,7 +1,13 @@
 {
   "manifest_version": 3,
   "name": "Typer.AI",
-  "version": "0.1.1",
+  "version": "0.1.2",
+  "icons": {
+    "16": "logo-16.png",
+    "32": "logo-32.png",
+    "48": "logo-48.png",
+    "128": "logo-128.png"
+  },
   "description": "Your words, less typing. Document-grounded gray autocomplete with Tab to accept.",
   "minimum_chrome_version": "120",
   "permissions": [
@@ -16,6 +22,10 @@
     "service_worker": "background.js"
   },
   "action": {
+    "default_icon": {
+      "16": "logo-16.png",
+      "32": "logo-32.png"
+    },
     "default_popup": "popup.html",
     "default_title": "Typer.AI settings"
   },
