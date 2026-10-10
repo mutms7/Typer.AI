@@ -112,6 +112,9 @@ test('typed phrase context makes every email cache entry reachable', () => {
   assert.equal(engine.predict('regarding m').suffix, 'y');
   assert.equal(engine.predict('as well a').suffix, 's');
   assert.equal(engine.predict('would li').suffix, 'ke to');
+  for (const [prefix, word] of [['ba', 'background'], ['exp', 'experience'], ['proc', 'process'], ['prof', 'professional'], ['ope', 'opening'], ['des', 'description'], ['inq', 'inquiry'], ['cont', 'contact'], ['sk', 'skills'], ['ac', 'academic'], ['proj', 'projects'], ['te', 'technical'], ['dev', 'development'], ['cod', 'coding'], ['por', 'portfolio']]) {
+    assert.equal(prefix + engine.predict(prefix).suffix, word);
+  }
 });
 
 test('phrase matching respects ambiguity, punctuation, confidence and document evidence', () => {

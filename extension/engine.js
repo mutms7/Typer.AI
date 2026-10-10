@@ -66,10 +66,12 @@
       for (const term of (Array.isArray(ranks) ? ranks : []).slice(0, 80)) {
         if (typeof term !== 'string' || term.length > 100 || !/^[\p{L}\p{N}]+(?:['’\-][\p{L}\p{N}]+)*(?:\+{1,2}|#)?(?: [\p{L}\p{N}]+(?:['’\-][\p{L}\p{N}]+)*(?:\+{1,2}|#)?){0,4}$/u.test(term)) continue;
         this.cloudPhrases.push(term);
-        for (const t of tokens(term)) {
+        const parts = tokens(term);
+        for (const t of parts) {
           if (t.key.length < 2 || t.key.length > 64) continue;
           if (!this.words.has(t.key)) this.words.set(t.key, { word: t.text, count: .5, heading: false, inferred: true });
-          this.ranks.set(t.key, 1.4);
+          // Explicit vocabulary should beat incidental words inside cached phrases.
+          this.ranks.set(t.key, Math.max(this.ranks.get(t.key) || 0, parts.length === 1 ? 2.1 : 1.4));
         }
       }
       this.prefixes.clear();
