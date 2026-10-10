@@ -2,7 +2,23 @@
 (function (root) {
   'use strict';
   const TOKEN = /[\p{L}\p{N}]+(?:['’\-][\p{L}\p{N}]+)*(?:\+{1,2}|#)?/gu;
-  const STOP = new Set('a an the and or but of in on to for with is are was were be this that it as by at from however therefore'.split(' '));
+  // Offline priors, not predictions after an empty prefix. Document evidence wins.
+  const COMMON_WORDS = Object.freeze({
+    the: 5, and: 4, to: 3, of: 3, is: 2, in: 2, for: 1.5, with: 1.5,
+    a: 1, an: .3, I: 1, you: 1, we: 1, it: 1, that: .3, this: .3,
+    are: 1, was: 1, were: .5, be: 1, been: .4, being: .3, have: 1, has: .7,
+    had: .4, do: .8, does: .4, did: .4, can: 1, could: .4, will: 1, would: .7,
+    should: .5, may: .4, might: .3, must: .3, not: 1, no: .5, or: 1, but: 1,
+    if: 1, as: .7, at: .7, by: .7, on: .7, from: .7, into: .3, about: .4,
+    than: .25, then: .2, there: .2, their: .2, them: .2, they: .2, these: .15, those: .15,
+    our: .4, your: .4, my: .4, me: .4, its: .3, also: .3, more: .4, most: .3,
+    some: .3, any: .2, all: .3, each: .3, other: .3, another: .2, same: .3,
+    when: .5, where: .3, which: .4, who: .3, what: .5, how: .4, because: .5,
+    so: .4, just: .3, only: .3, still: .3, even: .3, again: .3, before: .3, after: .3,
+    between: .3, through: .15, both: .3, such: .2, like: .4, need: .4, want: .4,
+    know: .4, think: .15, make: .4, use: .4, get: .4, help: .3, see: .3, find: .3,
+    let: .3, please: .3, thanks: .3, much: .3, well: .3, very: .2
+  });
   const normalize = s => s.toLocaleLowerCase('en-US');
   const tokens = s => [...s.matchAll(TOKEN)].map(m => ({ text: m[0], key: normalize(m[0]), start: m.index, end: m.index + m[0].length }));
   class Engine {
@@ -10,9 +26,10 @@
     index(documentText, title = '') {
       this.words.clear(); this.prefixes.clear(); this.next.clear(); this.ranks.clear();
       this.cloudPhrases = [];
+      for (const [word, prior] of Object.entries(COMMON_WORDS)) this.words.set(normalize(word), { word, count: 0, heading: false, common: true, prior });
       const text = documentText.slice(0, 30000), ts = tokens(text);
       const addWord = (word, weight, heading) => {
-        if (word.key.length < 3 || word.key.length > 64 || STOP.has(word.key)) return;
+        if (word.key.length < 2 || word.key.length > 64) return;
         const old = this.words.get(word.key) || { word: word.text, count: 0, heading: false };
         old.count += weight; old.heading ||= heading; this.words.set(word.key, old);
       };
@@ -50,7 +67,7 @@
         if (typeof term !== 'string' || term.length > 100 || !/^[\p{L}\p{N}]+(?:['’\-][\p{L}\p{N}]+)*(?:\+{1,2}|#)?(?: [\p{L}\p{N}]+(?:['’\-][\p{L}\p{N}]+)*(?:\+{1,2}|#)?){0,4}$/u.test(term)) continue;
         this.cloudPhrases.push(term);
         for (const t of tokens(term)) {
-          if (t.key.length < 3 || t.key.length > 64 || STOP.has(t.key)) continue;
+          if (t.key.length < 2 || t.key.length > 64) continue;
           if (!this.words.has(t.key)) this.words.set(t.key, { word: t.text, count: .5, heading: false, inferred: true });
           this.ranks.set(t.key, 1.4);
         }
@@ -78,12 +95,12 @@
       const ranked = candidates.map(w => {
         const item = this.words.get(w);
         const contextual = evidence?.get(w)?.count || 0;
-        return { key: w, ...item, contextual, score: (Math.log2(1 + item.count) + 4 * contextual) * (this.ranks.get(w) || 1) };
+        return { key: w, ...item, contextual, score: ((item.prior || 0) + Math.log2(1 + item.count) + 4 * contextual) * (this.ranks.get(w) || 1) };
       }).sort((a, b) => b.score - a.score || a.key.localeCompare(b.key));
       const best = ranked[0], total = ranked.reduce((s, t) => s + t.score, 0);
       const margin = best.score / total;
       // A confidence score is a heuristic evidence gate, NOT a calibrated probability.
-      const support = best.heading || best.count >= 2 || key.length >= 3 || (best.inferred && key.length >= 2) || best.contextual;
+      const support = best.heading || best.count >= 2 || key.length >= 3 || ((best.inferred || best.common) && key.length >= 2) || best.contextual;
       const confidence = Math.min(0.99, 0.52 + 0.39 * margin + Math.min(key.length, 5) * 0.014 + (best.contextual ? 0.04 : 0));
       if (!support || confidence < threshold || (key.length === 1 && margin < 0.72 && !best.contextual)) return null;
       let word = best.word;
@@ -93,8 +110,14 @@
       let suffix = word.slice(partial.length), sequence = [...preceding, best.key], phraseConfidence = confidence;
       // Related phrases are weaker evidence than repetitions in the actual draft.
       const related = (this.cloudPhrases || []).filter(term => normalize(term).startsWith(best.key + ' '));
-      if (!best.contextual && key.length >= 2 && threshold <= .80 && related.length === 1) {
-        suffix += related[0].slice(best.key.length);
+      const observedPhrase = term => {
+        const words = tokens(term).map(t => t.key);
+        return words.slice(1).every((w, i) => this.next.get(words[i])?.has(w));
+      };
+      const familiar = related.filter(observedPhrase);
+      const phrase = familiar.length === 1 ? familiar[0] : !best.common && !best.contextual && related.length === 1 ? related[0] : null;
+      if (key.length >= 2 && threshold <= .80 && phrase) {
+        suffix += phrase.slice(best.key.length);
         return { suffix, confidence: Math.min(confidence, .80), source: 'cloud-ranked' };
       }
       // Extend only with repeated, dominant continuation evidence. Threshold, not word-count UI.
@@ -112,9 +135,10 @@
         if (data.count < 2 || phraseConfidence < threshold || next === sequence.at(-1)) break;
         suffix += ' ' + data.word; sequence.push(next);
       }
-      return suffix ? { suffix, confidence, source: this.ranks.has(best.key) ? 'cloud-ranked' : 'local' } : null;
+      return suffix ? { suffix, confidence, source: this.ranks.has(best.key) ? 'cloud-ranked' : best.common && !best.count ? 'common' : 'local' } : null;
     }
   }
   root.TyperEngine = Engine;
-  if (typeof module !== 'undefined') module.exports = { Engine, tokens };
+  root.TyperCommonWords = COMMON_WORDS;
+  if (typeof module !== 'undefined') module.exports = { Engine, tokens, COMMON_WORDS };
 })(typeof globalThis !== 'undefined' ? globalThis : window);

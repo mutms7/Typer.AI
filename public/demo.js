@@ -18,6 +18,7 @@
     document.querySelector('#demo-hint').textContent = samples[id].hint;
     document.querySelectorAll('.example').forEach(el => { const selected = el.id === id; el.classList.toggle('selected', selected); el.setAttribute('aria-pressed', String(selected)); });
     notes.focus({ preventScroll: true }); notes.setSelectionRange(notes.value.length, notes.value.length);
+    notes.scrollTop = notes.scrollHeight;
     notes.dispatchEvent(new InputEvent('input', { bubbles: true })); ranks();
   }
   confidence.addEventListener('input', update);

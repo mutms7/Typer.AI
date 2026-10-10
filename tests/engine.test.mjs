@@ -77,6 +77,21 @@ test('observed context wins over a related cloud phrase', () => {
   e.setRanks(['transformation matrix']);
   assert.equal(e.predict('This is a linear tr').suffix, 'ansformation');
 });
+test('ordinary words work offline and survive clearing AI vocabulary', () => {
+  const e = new Engine().index('', '');
+  assert.equal(e.predict('th').suffix, 'e');
+  assert.equal(e.predict('an').suffix, 'd');
+  e.setRanks(['and the', 'cloud']);
+  assert.equal(e.predict('an').suffix, 'd');
+  e.setRanks([]);
+  assert.equal(e.predict('th').suffix, 'e');
+  assert.equal(e.predict('however, '), null);
+});
+test('local sentence evidence distinguishes common words', () => {
+  const e = new Engine().index('These scores are in order. These scores are in order.', 'Quiz scores');
+  assert.ok(e.predict('Scores ar').suffix.startsWith('e'));
+  assert.equal(e.predict('th', .78, 'e'), null);
+});
 test('unfinished current token does not hide a useful shorter context', () => {
   const text = 'A vector has a magnitude and a direction. Vector addition combines two vectors. The vector space contains vectors and their linear combinations.\n\nThe vector represents a displacement. The vector represents a displacement.\n\nA v';
   assert.equal(new Engine().index(text, 'Vectors & linear algebra').predict(text).suffix, 'ector');

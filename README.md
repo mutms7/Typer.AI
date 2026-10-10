@@ -37,7 +37,7 @@ Open `http://127.0.0.1:8787` for the interactive demo. Load `dist/extension` in 
 - A confidence slider that gates suggestions and phrase continuation. Confidence is a heuristic evidence score, not a calibrated probability.
 - Native insertion where supported, with input events for editor integrations. Tab keeps its normal behavior when there is no suggestion.
 - Escape dismissal, composition handling, selection checks, scroll positioning, paused sites, and a global off switch.
-- Optional structured-output Gemini or OpenAI vocabulary ranking in the background, including closely related unseen words. Inferred words need at least two typed characters; the typing path stays local.
+- Optional structured-output Gemini or OpenAI vocabulary ranking in the background, prioritizing connective words and familiar sentence fragments, with a 107-word offline dictionary and closely related unseen wording. Inferred words need at least two typed characters; the typing path stays local.
 - Owner-only API key, exact-origin access policy, bounded excerpts and output, durable SQLite daily/monthly request budgets, per-IP limits, and concurrency control.
 - No accounts, document persistence, telemetry, or writing history. Provider retention is governed by OpenAI's own policies.
 

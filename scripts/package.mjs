@@ -1,5 +1,8 @@
 import { mkdir, readdir, readFile, writeFile, cp } from 'node:fs/promises';
 import { resolve } from 'node:path';
+import { createRequire } from 'node:module';
+const { COMMON_WORDS } = createRequire(import.meta.url)('../extension/engine.js');
+await writeFile('public/common-words.json', JSON.stringify({ words: Object.keys(COMMON_WORDS), note: 'Hand-curated offline vocabulary. Weights are heuristic priors, not measured word probabilities.' }, null, 2) + '\n');
 const apiUrl = process.env.TYPER_API_URL || '';
 if (apiUrl) { const u = new URL(apiUrl); if (u.protocol !== 'https:' && !['localhost','127.0.0.1'].includes(u.hostname)) throw new Error('Public API must use HTTPS'); if (u.username || u.password || u.search || u.hash || u.pathname !== '/') throw new Error('TYPER_API_URL must be an origin'); }
 await mkdir('dist/extension', { recursive: true });

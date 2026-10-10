@@ -32,6 +32,14 @@ test('Gemini uses the same prompt and sends the owner key only to Google', async
   assert.equal(request.generationConfig.responseMimeType, 'application/json');
   assert.deepEqual(result, ['eigenvalue', 'linear independence']);
 });
+test('structured groups retain short connective words and flatten into the cache', async () => {
+  const result = await rankWithGemini({ title: 'Mean and median', text: 'The mean is the sum divided by the number of scores.' }, { ...base, model: 'gemini-3.5-flash-lite' }, undefined, async (_url, init) => {
+    const request = JSON.parse(init.body);
+    assert.deepEqual(request.generationConfig.responseSchema.required, ['common_words','connective_phrases','document_terms']);
+    return { ok: true, json: async () => ({ candidates: [{ content: { parts: [{ text: JSON.stringify({ common_words: ['the','of','a'], connective_phrases: ['and the','we can'], document_terms: ['mean','median'] }) }] } }] }) };
+  });
+  assert.deepEqual(result, ['the','of','a','and the','we can','mean','median']);
+});
 test('quota reservations persist across restart and failed attempts', async () => {
   const dir = await mkdtemp(join(tmpdir(), 'typer-quota-'));
   try {
