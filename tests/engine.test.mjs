@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
+import { readFileSync } from 'node:fs';
 const { Engine } = createRequire(import.meta.url)('../extension/engine.js');
 test('document-grounded vector completion, never a generic continuation', () => {
   const e = new Engine().index('A vector has magnitude. A vector has direction. The vector represents displacement.', 'Vectors');
@@ -95,4 +96,37 @@ test('local sentence evidence distinguishes common words', () => {
 test('unfinished current token does not hide a useful shorter context', () => {
   const text = 'A vector has a magnitude and a direction. Vector addition combines two vectors. The vector space contains vectors and their linear combinations.\n\nThe vector represents a displacement. The vector represents a displacement.\n\nA v';
   assert.equal(new Engine().index(text, 'Vectors & linear algebra').predict(text).suffix, 'ector');
+});
+
+test('typed phrase context makes every email cache entry reachable', () => {
+  const sample = JSON.parse(readFileSync('public/demo-vocabulary.json', 'utf8')).samples.email;
+  const engine = new Engine().index(sample.document, sample.title);
+  engine.setRanks(sample.terms);
+  for (const term of sample.terms) {
+    const reachable = Array.from({ length: term.length - 2 }, (_, i) => term.slice(0, i + 2)).some(prefix => {
+      const suggestion = engine.predict(prefix);
+      return suggestion && (prefix + suggestion.suffix).toLowerCase().startsWith(term.toLowerCase());
+    });
+    assert.ok(reachable, 'Unreachable email entry: ' + term);
+  }
+  assert.equal(engine.predict('regarding m').suffix, 'y');
+  assert.equal(engine.predict('as well a').suffix, 's');
+  assert.equal(engine.predict('would li').suffix, 'ke to');
+});
+
+test('phrase matching respects ambiguity, punctuation, confidence and document evidence', () => {
+  const engine = new Engine().index('Regarding the interview. Regarding the interview.', '');
+  engine.setRanks(['regarding team', 'in my opinion', 'in my experience', 'as well as']);
+  assert.equal(engine.predict('regarding t').suffix, 'he interview');
+  assert.equal(engine.phraseCompletion('in my', .78), null);
+  assert.equal(engine.phraseCompletion('in my op', .78).suffix, 'inion');
+  assert.equal(engine.phraseCompletion('as. well a', .78), null);
+  assert.equal(engine.phraseCompletion('as\nwell a', .78), null);
+  assert.equal(engine.phraseCompletion('as well a', .9), null);
+  assert.equal(engine.predict('as well a', .78, 's'), null);
+  engine.setRanks([]);
+  assert.equal(engine.phraseCompletion('as well a', .78), null);
+  engine.index('Find the mean. Find the mean.', '');
+  engine.setRanks(['find the median']);
+  assert.equal(engine.predict('find th').suffix, 'e mean');
 });

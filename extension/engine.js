@@ -79,12 +79,40 @@
         this.prefixes.get(prefix).push(word);
       }
     }
+    phraseCompletion(before, threshold) {
+      if (threshold > .80) return null;
+      const recent = before.slice(-300), typed = tokens(recent);
+      if (typed.length < 2) return null;
+      const matches = [];
+      for (const term of this.cloudPhrases || []) {
+        const phrase = tokens(term);
+        for (let length = Math.min(typed.length, phrase.length); length >= 2; length--) {
+          const tail = typed.slice(-length);
+          if (tail.slice(0, -1).some((word, i) => word.key !== phrase[i].key)) continue;
+          if (tail.some((word, i) => i && !/^[ \t]+$/.test(recent.slice(tail[i - 1].end, word.start)))) continue;
+          const partial = tail.at(-1), nextWord = phrase[length - 1];
+          if (!nextWord.key.startsWith(partial.key)) continue;
+          const end = nextWord.start + partial.text.length;
+          if (end >= term.length) continue;
+          const confidence = Math.min(.80, .72 + (length - 1) * .06 + Math.min(partial.text.length, 2) * .01);
+          if (confidence >= threshold) matches.push({ term, length, wordKey: nextWord.key, suffix: term.slice(end), confidence, source: 'cloud-ranked' });
+          break;
+        }
+      }
+      const longest = Math.max(0, ...matches.map(match => match.length));
+      const specific = matches.filter(match => match.length === longest);
+      // Use the typed phrase to disambiguate, never arbitrarily pick a continuation.
+      const distinct = new Map(specific.map(match => [normalize(match.suffix), match]));
+      return distinct.size === 1 ? distinct.values().next().value : null;
+    }
     predict(before, threshold = 0.78, after = '') {
       if (!before || /^[\p{L}\p{N}]/u.test(after)) return null;
       const match = before.match(/([\p{L}\p{N}]+(?:['’\-][\p{L}\p{N}]+)*(?:\+{1,2}|#)?)$/u);
       if (!match) return null; // No guesses after 'however,' or at blank line starts.
       const partial = match[1], key = normalize(partial), candidates = this.prefixes.get(key)?.filter(w => !this.words.get(w).inferred || key.length >= (threshold >= .9 ? 3 : 2));
-      if (!candidates?.length) return null;
+      const cachedPhrase = this.phraseCompletion(before, threshold);
+      const phraseResult = () => cachedPhrase && ({ suffix: cachedPhrase.suffix, confidence: cachedPhrase.confidence, source: cachedPhrase.source });
+      if (!candidates?.length) return phraseResult();
       const preceding = tokens(before.slice(Math.max(0, before.length - 250), before.length - partial.length)).map(t => t.key);
       let evidence;
       for (let n = Math.min(3, preceding.length); n > 0; n--) {
@@ -102,6 +130,24 @@
       // A confidence score is a heuristic evidence gate, NOT a calibrated probability.
       const support = best.heading || best.count >= 2 || key.length >= 3 || ((best.inferred || best.common) && key.length >= 2) || best.contextual;
       const confidence = Math.min(0.99, 0.52 + 0.39 * margin + Math.min(key.length, 5) * 0.014 + (best.contextual ? 0.04 : 0));
+      const agreesWithDraft = () => {
+        const sequence = [...preceding, cachedPhrase.wordKey];
+        for (const next of tokens(cachedPhrase.term).slice(cachedPhrase.length)) {
+          let choices;
+          for (let n = Math.min(3, sequence.length); n > 0; n--) {
+            choices = this.next.get(sequence.slice(-n).join(' '));
+            if (choices) break;
+          }
+          if (choices) {
+            const sorted = [...choices.entries()].sort((a, b) => b[1].count - a[1].count);
+            const [word, data] = sorted[0], total = sorted.reduce((sum, [, item]) => sum + item.count, 0);
+            if (data.count >= 2 && data.count / (total + .5) * .98 >= threshold && word !== next.key) return false;
+          }
+          sequence.push(next.key);
+        }
+        return true;
+      };
+      if (cachedPhrase && (!best.contextual || best.key === cachedPhrase.wordKey) && agreesWithDraft()) return phraseResult();
       if (!support || confidence < threshold || (key.length === 1 && margin < 0.72 && !best.contextual)) return null;
       let word = best.word;
       if (partial === partial.toUpperCase() && partial.length > 1) word = word.toUpperCase();
