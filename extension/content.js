@@ -7,6 +7,7 @@
   let active = null, engine = new TyperEngine(), ranks = [], indexedText = '', title = '', lastIndex = 0;
   let composing = false, suggestion = null, signature = '', epoch = 0, lastCloud = 0, lastExcerpt = '', dismissed = '';
   let rebuildTimer, cloudTimer, frame;
+  let cloudFailures = 0;
   const host = document.createElement('div');
   host.dataset.typerUi = ''; host.setAttribute('aria-hidden', 'true');
   host.style.cssText = 'all:initial;position:fixed;inset:0;pointer-events:none;z-index:2147483647';
@@ -57,17 +58,25 @@
     if (text === lastExcerpt) return;
     lastCloud = Date.now();
     const version = epoch, editor = active;
+    const retry = () => {
+      if (version !== epoch || editor !== active || !settings.cloud || !allowed()) return;
+      if (++cloudFailures > 3) return;
+      clearTimeout(cloudTimer);
+      cloudTimer = setTimeout(cloud, 45000 * 2 ** (cloudFailures - 1));
+    };
     try {
       const result = await chrome.runtime.sendMessage({ type: 'rank', text, title: currentTitle(active) });
       if (version !== epoch || editor !== active || !settings.cloud || !allowed()) return;
       // A failed or throttled refresh must not erase the useful current cache.
-      if (result?.terms?.length) { lastExcerpt = text; ranks = result.terms; engine.setRanks(ranks); schedule(); }
-    } catch { /* Local engine keeps working when extension context is gone. */ }
+      if (result?.terms?.length) { cloudFailures = 0; lastExcerpt = text; ranks = result.terms; engine.setRanks(ranks); schedule(); }
+      else retry();
+    } catch { retry(); /* Local engine keeps working when extension context is gone. */ }
   }
   function focus(target) {
     const editor = E.editorFor(target);
     if (editor === active) { schedule(); clearTimeout(cloudTimer); if (active) cloudTimer = setTimeout(cloud, 1800); return; }
     epoch++; active = editor; ranks = []; indexedText = ''; lastIndex = 0; lastCloud = 0; lastExcerpt = ''; dismissed = '';
+    cloudFailures = 0;
     engine = new TyperEngine(); hide(); clearTimeout(cloudTimer); clearTimeout(rebuildTimer);
     if (active) { schedule(); cloudTimer = setTimeout(cloud, 1800); }
   }
@@ -77,7 +86,7 @@
     if (!allowed()) return hide();
     const editor = E.editorFor(e.target); if (!editor) return;
     if (editor !== active) focus(e.target);
-    dismissed = ''; schedule(); clearTimeout(cloudTimer); cloudTimer = setTimeout(cloud, 1800);
+    dismissed = ''; cloudFailures = 0; schedule(); clearTimeout(cloudTimer); cloudTimer = setTimeout(cloud, 1800);
   }, true);
   document.addEventListener('keydown', e => {
     if (E.editorFor(e.target) !== active || !allowed() || composing || e.isComposing) return;
@@ -108,7 +117,7 @@
         const wasCloud = settings.cloud;
         settings = message.settings; epoch++;
         if (!settings.cloud) { ranks = []; engine.setRanks([]); }
-        if (wasCloud !== settings.cloud) lastExcerpt = '';
+        if (wasCloud !== settings.cloud) { lastExcerpt = ''; cloudFailures = 0; }
         clearTimeout(cloudTimer); hide(); schedule();
         if (active && allowed() && settings.cloud) cloudTimer = setTimeout(cloud, 1800);
       }

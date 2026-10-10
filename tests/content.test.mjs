@@ -74,3 +74,12 @@ test('confidence changes retain cloud vocabulary and opting out clears it', asyn
   assert.deepEqual(h.rankingUpdates, [['quaternion'], []]);
   assert.equal(h.delay, undefined);
 });
+
+test('unavailable cloud refresh retries with backoff and stops after three retries', async () => {
+  const h = await contentHarness(); h.response({ terms: [] });
+  await h.fire(); assert.equal(h.delay, 45000);
+  h.time(45000); await h.fire(); assert.equal(h.delay, 90000);
+  h.time(135000); await h.fire(); assert.equal(h.delay, 180000);
+  h.time(315000); await h.fire(); assert.equal(h.delay, undefined);
+  assert.equal(h.calls, 4);
+});

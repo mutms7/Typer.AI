@@ -24,7 +24,17 @@ export function serverConfig(env = process.env) {
     if ((!extension && !web) || (production && web && url.protocol !== 'https:' && !local)) throw new Error('ALLOWED_ORIGINS needs exact HTTPS or extension origins (HTTP is allowed on localhost)');
   }
   if (env.TRUST_PROXY !== undefined && !['true', 'false'].includes(env.TRUST_PROXY)) throw new Error('TRUST_PROXY must be true or false');
+  const quotaStore = env.QUOTA_STORE || 'sqlite';
+  if (!['sqlite', 'supabase'].includes(quotaStore)) throw new Error('QUOTA_STORE must be sqlite or supabase');
+  let supabaseUrl = '', supabaseKey = '';
+  if (quotaStore === 'supabase') {
+    try { const url = new URL(env.SUPABASE_URL); if (url.protocol !== 'https:' || url.origin !== env.SUPABASE_URL) throw new Error(); supabaseUrl = url.origin; }
+    catch { throw new Error('SUPABASE_URL must be an exact HTTPS origin'); }
+    supabaseKey = env.SUPABASE_SECRET_KEY || env.SUPABASE_SERVICE_ROLE_KEY || '';
+    if (!supabaseKey.trim() || supabaseKey.startsWith('sb_publishable_')) throw new Error('Supabase quota storage needs a server secret key');
+  }
   return {
+    quotaStore, supabaseUrl, supabaseKey,
     ...provider, dataDir: resolve(env.DATA_DIR || 'data'),
     dbPath: resolve(env.DATA_DIR || 'data', 'quota.sqlite'), publicDir: resolve('public'),
     host: env.HOST || '127.0.0.1', port: number('PORT', 8787, 65535),

@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: typer-ai
+    runtime: docker
+    plan: starter
+    healthCheckPath: /ready
+    disk:
+      name: typer-quota
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: AI_PROVIDER
+        value: gemini
+      - key: GEMINI_MODEL
+        value: gemini-3.1-flash-lite
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: IP_HASH_SECRET
+        generateValue: true
+      - key: ALLOWED_ORIGINS
+        sync: false
+      - key: DAILY_REQUEST_BUDGET
+        value: '200'
+      - key: MONTHLY_REQUEST_BUDGET
+        value: '3000'
+      - key: PER_IP_HOURLY_LIMIT
+        value: '20'
+      - key: MAX_CONCURRENT_REQUESTS
+        value: '3'
+      - key: TRUST_PROXY
+        value: 'false'

@@ -2,7 +2,7 @@ import { mkdirSync } from 'node:fs';
 import { createApp } from './app.mjs';
 import { serverConfig } from './config.mjs';
 const config = serverConfig();
-mkdirSync(config.dataDir, { recursive: true });
+if (config.quotaStore === 'sqlite') mkdirSync(config.dataDir, { recursive: true });
 const server = createApp(config);
 server.listen(config.port, config.host, () => console.log('Typer.AI server started. Cloud ranking ' + (config.apiKey ? 'configured.' : 'disabled.')));
 let stopping = false;

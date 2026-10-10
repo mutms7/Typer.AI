@@ -4,10 +4,11 @@ import { readFileSync } from 'node:fs';
 import { resolve, sep } from 'node:path';
 import { rankVocabulary } from './provider.mjs';
 import { Ledger } from './ledger.mjs';
+import { SupabaseLedger } from './supabase-ledger.mjs';
 const mime = { '.html': 'text/html; charset=utf-8', '.css': 'text/css', '.js': 'text/javascript', '.json': 'application/json', '.svg': 'image/svg+xml', '.zip': 'application/zip', '.ttf': 'font/ttf' };
 const version = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')).version;
-export function createApp(config, provider = rankVocabulary) {
-  const ledger = new Ledger(config.dbPath, config);
+export function createApp(config, provider = rankVocabulary, quotaLedger) {
+  const ledger = quotaLedger || (config.quotaStore === 'supabase' ? new SupabaseLedger(config) : new Ledger(config.dbPath, config));
   let inflight = 0;
   const server = createServer(async (req, res) => {
     res.setHeader('X-Content-Type-Options', 'nosniff');
@@ -20,7 +21,7 @@ export function createApp(config, provider = rankVocabulary) {
       if (pathname === '/health' && req.method === 'GET') return json(200, { ok: true, cloudConfigured: Boolean(config.apiKey), version });
       if (pathname === '/ready' && req.method === 'GET') {
         let databaseReady = false;
-        try { databaseReady = ledger.healthy(); } catch { /* Report readiness without database details. */ }
+        try { databaseReady = await ledger.healthy(); } catch { /* Report readiness without database details. */ }
         const cloudConfigured = Boolean(config.apiKey);
         return json(databaseReady && cloudConfigured ? 200 : 503, { ok: databaseReady && cloudConfigured, databaseReady, cloudConfigured, version });
       }
@@ -40,13 +41,19 @@ export function createApp(config, provider = rankVocabulary) {
         if (!config.apiKey) return json(503, { error: 'Cloud ranking is not configured. Local predictions remain available.' });
         if (inflight >= config.concurrent) return json(429, { error: 'Busy. Keep using local predictions.' });
         const ip = config.trustProxy ? String(req.headers['x-forwarded-for'] || req.socket.remoteAddress).split(',')[0].trim() : req.socket.remoteAddress || 'unknown';
-        if (!ledger.reserve(ip)) return json(429, { error: 'Ranking limit reached. Local predictions remain available.' });
         // Every provider attempt consumes a durable allowance, including failed attempts.
         inflight++;
         const controller = new AbortController(), timer = setTimeout(() => controller.abort(), 30000);
         const onClose = () => { if (!res.writableEnded) controller.abort(); };
         res.on('close', onClose);
-        try { const terms = await provider(body, config, controller.signal); return json(200, { terms }); }
+        try {
+          let reserved;
+          try { reserved = await ledger.reserve(ip); }
+          catch { return json(503, { error: 'Request budgets unavailable. Local predictions remain available.' }); }
+          if (!reserved) return json(429, { error: 'Ranking limit reached. Local predictions remain available.' });
+          if (controller.signal.aborted) return;
+          const terms = await provider(body, config, controller.signal); return json(200, { terms });
+        }
         catch { return json(502, { error: 'Cloud ranking unavailable. Local predictions remain available.' }); }
         finally { clearTimeout(timer); res.off('close', onClose); inflight--; }
       }

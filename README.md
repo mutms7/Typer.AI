@@ -53,7 +53,7 @@ The first 30,000 characters are indexed locally. Long documents remain editable,
 
 The API key goes only in the backend's `GEMINI_API_KEY` environment variable (or `OPENAI_API_KEY` for OpenAI). Package a cloud-connected extension with `TYPER_API_URL=https://your-server.example` (no key in the extension). See [deployment instructions](docs/deployment.md).
 
-The Render blueprint uses Gemini 3.1 Flash-Lite and a persistent SQLite disk. Production startup validates keys, origins and budgets; `/ready` checks provider configuration and the quota database. After provisioning, run `npm run deployment:check -- <API_ORIGIN> <ALLOWED_ORIGIN>` to check readiness and origin access without sending document text or calling Gemini.
+The default Render blueprint uses its free service with Supabase for durable request budgets. Gemini 3.1 Flash-Lite runs only on the backend. Local development still uses SQLite; `render-sqlite.yaml` is the optional paid disk setup. Production startup validates keys, origins and budgets; `/ready` checks provider configuration and the quota database. After provisioning, run `npm run deployment:check -- <API_ORIGIN> <ALLOWED_ORIGIN>` to check readiness and origin access without sending document text or calling Gemini.
 
 Cloud mode is optional and off by default because excerpts leave the device. Excerpts refresh after an idle interval, no more than once every 45 seconds per active frame, and only when changed. Local completion continues if the provider is slow, offline, or over quota.
 

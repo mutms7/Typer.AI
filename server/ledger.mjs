@@ -1,5 +1,5 @@
 import { DatabaseSync } from 'node:sqlite';
-import { createHmac } from 'node:crypto';
+import { quotaWindows } from './quota-windows.mjs';
 export class Ledger {
   constructor(path, config) {
     this.config = config;
@@ -9,13 +9,7 @@ export class Ledger {
     this.add = this.db.prepare('INSERT INTO quota(key,used,expires) VALUES(?,1,?) ON CONFLICT(key) DO UPDATE SET used=used+1');
   }
   reserve(ip, now = new Date()) {
-    const day = now.toISOString().slice(0, 10), month = day.slice(0, 7), hour = now.toISOString().slice(0, 13);
-    const hash = createHmac('sha256', this.config.ipSecret).update(ip).digest('hex');
-    const quotas = [
-      ['day:' + day, this.config.daily, Date.parse(day) + 86400000],
-      ['month:' + month, this.config.monthly, Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1)],
-      ['ip:' + hour + ':' + hash, this.config.perIp, now.getTime() + 3600000]
-    ];
+    const quotas = quotaWindows(ip, this.config, now);
     this.db.exec('BEGIN IMMEDIATE');
     try {
       for (const [key, limit] of quotas) if ((this.get.get(key)?.used || 0) >= limit) {

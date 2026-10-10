@@ -32,3 +32,10 @@ test('invalid port, budgets and proxy flags fail before startup', () => {
     for (const value of values) assert.throws(() => serverConfig({ ...production, [key]: value }), new RegExp(key));
   }
 });
+
+test('remote quotas require HTTPS and a server secret rather than a browser key', () => {
+  const remote = { ...production, QUOTA_STORE: 'supabase', SUPABASE_URL: 'https://example.supabase.co', SUPABASE_SECRET_KEY: 'sb_secret_test-not-real' };
+  assert.equal(serverConfig(remote).quotaStore, 'supabase');
+  assert.equal(serverConfig(production).quotaStore, 'sqlite');
+  for (const patch of [{ QUOTA_STORE: 'unknown' }, { SUPABASE_URL: 'http://example.supabase.co' }, { SUPABASE_URL: 'https://example.supabase.co/' }, { SUPABASE_SECRET_KEY: '' }, { SUPABASE_SECRET_KEY: 'sb_publishable_test' }]) assert.throws(() => serverConfig({ ...remote, ...patch }));
+});
