@@ -70,4 +70,4 @@ Set the public GitHub repository variable `TYPER_API_URL` to the backend origin 
 
 ## Publishing status
 
-The shared backend is deployed at https://typer-ai.onrender.com on Render Free, with a dedicated Supabase Free database for request counters. Version 0.1.4 downloads include that public endpoint. Cloud mode remains off until users enable it and grant the optional host permission. The GitHub Pages demo runs the local engine with precomputed Gemini vocabulary for its public samples. It never uploads visitor edits. `npm run demo:vocabulary` regenerates those samples using the ignored local `.env`; it doesn't write the key.
+The shared backend is deployed at https://typer-ai.onrender.com on Render Free, with a dedicated Supabase Free database for request counters. Version 0.1.5 downloads include that public endpoint. Cloud mode remains off until users enable it and grant the optional host permission. The GitHub Pages demo runs the local engine with precomputed Gemini vocabulary for its public samples. It never uploads visitor edits. `npm run demo:vocabulary` regenerates those samples using the ignored local `.env`; it doesn't write the key.
