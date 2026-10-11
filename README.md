@@ -1,68 +1,11 @@
 # Typer.AI
 
-Your words, less typing. A Chrome and Edge extension for document-grounded autocomplete: gray text at the cursor, **Tab** to accept, **Escape** to dismiss.
+Typer.AI is a Chrome and Edge Manifest V3 extension that suggests words and short phrases from the active document. Suggestions appear as gray text at the cursor, with Tab to accept, Escape to dismiss, and an adjustable confidence threshold.
 
-[Try the browser demo](https://mutms7.github.io/Typer.AI/) · [Architecture](docs/architecture.md) · [Deployment](docs/deployment.md) · [Privacy](public/privacy.html)
+The autocomplete engine in `extension/engine.js` combines an offline common-word dictionary with document vocabulary, title weighting, and preceding-word context. It resolves completions locally, so typing doesn't depend on a network request. `extension/editor.js` handles editor text, cursor positions, and insertion; `extension/content.js` connects the engine to writing fields and renders suggestions. The popup controls suggestions, confidence, optional AI ranking, and paused sites.
 
-## Why this exists
+Optional background refreshes pass through the extension's service worker to the Node.js API in `server/`. The backend checks request limits, asks Gemini 3.1 Flash-Lite for relevant vocabulary and phrases, and returns validated entries for the extension to cache locally. The deployed backend runs in Docker on Render and stores transactional request counters in Supabase PostgreSQL. Local development uses SQLite.
 
-When taking academic notes, the thought should still come from you. Repeated technical vocabulary should not make typing slower than thinking. Typer uses the active document and its title to offer familiar words and phrases. It does not generate a new argument or bring in outside material.
+The website in `public/` shares the extension's autocomplete engine. Its demo uses precomputed Gemini vocabulary for sample documents and runs locally in the browser. GitHub Pages hosts the website.
 
-William Chenyin's architectural idea separates slow understanding from fast interaction: periodically send document excerpts to the server for vocabulary ranking, then let the local engine resolve prefixes and accept completions immediately. No model call sits on the typing path.
-
-## Install
-
-1. Download `typer-ai.zip` from the demo or [Releases](https://github.com/mutms7/Typer.AI/releases).
-2. Unzip it. Open `chrome://extensions` or `edge://extensions`.
-3. Enable Developer mode, choose **Load unpacked**, and select the folder containing `manifest.json`.
-4. Refresh an ordinary writing page. Type a prefix of a term already in the document and press Tab when gray text appears.
-
-This is an unpacked developer release, not a Chrome Web Store listing. The local build works immediately, offline, with no account or API key. Cloud-connected builds use an owner-operated server and ask for consent once in the popup. Users never supply an API key.
-
-## Run locally
-
-Requires Node.js 24 or newer. There are no third-party runtime dependencies.
-
-```sh
-npm run package
-npm test
-npm start
-```
-
-Open `http://127.0.0.1:8787` for the interactive demo. Load `dist/extension` in the browser for the actual extension. `npm run benchmark` measures engine lookup time separately from rendering and indexing.
-
-## Features
-
-- Vocabulary and short continuation evidence from the active document, with title weighting.
-- A confidence slider that gates suggestions and phrase continuation. Confidence is a heuristic evidence score, not a calibrated probability.
-- Native insertion where supported, with input events for editor integrations. Tab keeps its normal behavior when there is no suggestion.
-- Escape dismissal, composition handling, selection checks, scroll positioning, paused sites, and a global off switch.
-- Optional structured-output Gemini or OpenAI vocabulary ranking in the background, prioritizing connective words and familiar sentence fragments, with a 107-word offline dictionary and closely related unseen wording. Inferred words need at least two typed characters; the typing path stays local.
-- Owner-only API key, exact-origin access policy, bounded excerpts and output, durable SQLite daily/monthly request budgets, per-IP limits, and concurrency control.
-- No accounts, document persistence, telemetry, or writing history. Provider retention is governed by the configured provider's policies.
-
-## Compatibility
-
-Supports ordinary text inputs, textareas, and `contenteditable` editors, including nested formatting where native insertion works. Dynamic fields are detected through delegated events. The extension runs in matching frames.
-
-Google Docs and other canvas editors are not supported. Closed shadow-root editors, editors that reject native insertion, right-to-left ghost placement, browser-protected pages, and some heavily customized editors need dedicated adapters. No blanket compatibility claim is made for Notion, ProseMirror, or every React editor.
-
-The first 30,000 characters are indexed locally. Long documents remain editable, but vocabulary outside that window may not be available. Completions are clipped at the visible editor boundary rather than wrapping gray text onto a potentially incorrect line.
-
-## Cloud mode and costs
-
-The API key goes only in the backend's `GEMINI_API_KEY` environment variable (or `OPENAI_API_KEY` for OpenAI). Package a cloud-connected extension with `TYPER_API_URL=https://your-server.example` (no key in the extension). See [deployment instructions](docs/deployment.md).
-
-The default Render blueprint uses its free service with Supabase for durable request budgets. Gemini 3.1 Flash-Lite runs only on the backend. Local development still uses SQLite; `render-sqlite.yaml` is the optional paid disk setup. Production startup validates keys, origins and budgets; `/ready` checks provider configuration and the quota database. After provisioning, run `npm run deployment:check -- <API_ORIGIN> <ALLOWED_ORIGIN>` to check readiness and origin access without sending document text or calling Gemini.
-
-Cloud mode is optional and off by default because excerpts leave the device. Excerpts refresh after an idle interval, no more than once every 45 seconds per active frame, and only when changed. Local completion continues if the provider is slow, offline, or over quota.
-
-Request budgets are hard limits on reserved provider attempts. They are not exact dollar caps: pricing depends on the configured model and provider. The request and output bounds keep exposure predictable; set provider-side limits as well. Failed calls still consume a request allowance. The public endpoint does not treat CORS or extension IDs as authentication. Anonymous users can spoof origins, so abuse controls and global budgets are essential.
-
-## Status
-
-Version 0.1.5 is an unpacked beta with optional live Gemini refreshes through https://typer-ai.onrender.com. Hosting uses Render Free and a dedicated Supabase Free database for durable request counters. A live browser-extension refresh was verified on October 10, 2026. Cloud mode is off by default; the free backend can sleep and request limits apply. The public demo uses precomputed Gemini 3.1 Flash-Lite responses for its two public samples. Visitor edits are never uploaded by the static demo. Resume adoption figures are not product telemetry and are not claimed here.
-
-## License
-
-MIT. See [LICENSE](LICENSE).
+`tests/` covers the engine, refresh scheduling, API behavior, configuration, and request budgets. `scripts/` handles extension packaging, demo vocabulary generation, benchmarks, and deployment checks. GitHub Actions runs automated checks and publishes the website. `docs/` contains detailed architecture, deployment, and verification notes.
