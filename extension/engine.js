@@ -108,7 +108,7 @@
       return distinct.size === 1 ? distinct.values().next().value : null;
     }
     predict(before, threshold = 0.78, after = '') {
-      if (!before || /^[\p{L}\p{N}]/u.test(after)) return null;
+      if (!before || /^(?:[\p{L}\p{N}+#]|['’\-][\p{L}\p{N}])/u.test(after)) return null;
       const match = before.match(/([\p{L}\p{N}]+(?:['’\-][\p{L}\p{N}]+)*(?:\+{1,2}|#)?)$/u);
       if (!match) return null; // No guesses after 'however,' or at blank line starts.
       const partial = match[1], key = normalize(partial), candidates = this.prefixes.get(key)?.filter(w => !this.words.get(w).inferred || key.length >= (threshold >= .9 ? 3 : 2));

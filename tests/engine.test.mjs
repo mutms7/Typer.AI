@@ -51,6 +51,14 @@ test('case, mid-word safety and indexing isolation', () => {
   assert.equal(e.predict('vec'), null);
   assert.equal(e.predict('mat').suffix, 'rix');
 });
+
+test('completion cannot insert into contractions, hyphenated words, or language suffixes', () => {
+  const e = new Engine().index('Welcome welcome welcome. Colour colour colour. Coding coding coding.', '');
+  for (const tail of ["'re", '’re', '-known']) assert.equal(e.predict('we', .65, tail), null);
+  for (const tail of ['+', '++', '#']) assert.equal(e.predict('co', .65, tail), null);
+  assert.ok(e.predict('wel', .65, "' "));
+  assert.ok(e.predict('wel', .65, '.'));
+});
 test('phrase evidence never crosses sentence punctuation', () => {
   const e = new Engine().index('A vector. Banana grows. A vector. Banana grows.', 'Vector');
   assert.equal(e.predict('A v', .65).suffix, 'ector');

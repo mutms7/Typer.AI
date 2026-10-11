@@ -21,7 +21,7 @@
   const allowed = () => settings.enabled && !settings.excluded.includes(location.hostname) && !document.hidden;
   const hide = () => { suggestion = null; ghost.textContent = ''; hint.style.display = 'none'; };
   hide();
-  const currentTitle = el => el.getAttribute('data-typer-title') || el.closest('article,main,form')?.querySelector('h1,h2')?.textContent?.slice(0, 300) || document.title.slice(0, 300);
+  const currentTitle = el => (el.getAttribute('data-typer-title') || el.closest('article,main,form')?.querySelector('h1,h2')?.textContent || document.title).slice(0, 300);
   function rebuild(snap) {
     indexedText = snap.text.slice(0, 30000); title = currentTitle(active);
     engine.index(indexedText, title); engine.setRanks(ranks); lastIndex = performance.now();
@@ -49,7 +49,7 @@
   }
   function schedule() { if (!frame) frame = requestAnimationFrame(render); }
   async function cloud() {
-    if (!active || E.editorFor(document.activeElement) !== active || !allowed() || !settings.cloud) return;
+    if (!active || E.editorFor(document.activeElement) !== active || !allowed() || !settings.cloud || composing) return;
     const remaining = 45000 - (Date.now() - lastCloud);
     if (remaining > 0) { clearTimeout(cloudTimer); cloudTimer = setTimeout(cloud, remaining); return; }
     const snap = E.snapshot(active); if (!snap || snap.text.length < 80) return;
@@ -99,8 +99,11 @@
       if (E.insert(active, suffix)) { e.preventDefault(); e.stopImmediatePropagation(); hide(); dismissed = ''; schedule(); }
     } else if (['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End','PageUp','PageDown'].includes(e.key)) { hide(); schedule(); }
   }, true);
-  document.addEventListener('compositionstart', () => { composing = true; hide(); }, true);
-  document.addEventListener('compositionend', () => { composing = false; schedule(); }, true);
+  document.addEventListener('compositionstart', () => { composing = true; hide(); clearTimeout(cloudTimer); }, true);
+  document.addEventListener('compositionend', () => {
+    composing = false; schedule(); clearTimeout(cloudTimer);
+    if (active && allowed() && settings.cloud) cloudTimer = setTimeout(cloud, 1800);
+  }, true);
   document.addEventListener('selectionchange', () => {
     const editor = E.editorFor(document.activeElement);
     if (editor !== active) focus(document.activeElement);
@@ -109,7 +112,14 @@
   document.addEventListener('pointerdown', () => { hide(); schedule(); }, true);
   document.addEventListener('scroll', schedule, true);
   window.addEventListener('resize', schedule);
-  document.addEventListener('visibilitychange', () => { if (document.hidden) hide(); else schedule(); });
+  document.addEventListener('visibilitychange', () => {
+    clearTimeout(cloudTimer);
+    if (document.hidden) hide();
+    else {
+      schedule();
+      if (active && allowed() && settings.cloud) cloudTimer = setTimeout(cloud, 1800);
+    }
+  });
   if (typeof chrome !== 'undefined' && chrome.runtime?.id) {
     chrome.runtime.sendMessage({ type: 'settings' }).then(r => { if (r?.settings) settings = r.settings; focus(document.activeElement); }).catch(() => {});
     chrome.runtime.onMessage.addListener(message => {
