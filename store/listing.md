@@ -84,9 +84,13 @@ Build the direct download with `npm run package`. Build the store ZIP separately
 
 Chrome Web Store item ID: gfekhahompbphjlcadpjlmndnglkojnn
 
+Version 0.1.7 was submitted on October 16, 2026. The dashboard confirmed Pending review, with automatic publication after approval. The listing is free of charge and public in all available regions. Its submission includes the description, two screenshots, padded icon, small promotional tile, permission explanations, privacy disclosures, and reviewer instructions. Google flagged broad content-script host access for a potentially longer review; that access supports autocomplete across supported writing fields.
+
 The store version and unpacked release have different IDs. The backend must allow both exact extension origins. Before submission, verify the store origin's readiness/preflight, test the uploaded package locally, and confirm the public privacy page is deployed.
 
 The owner confirmed on October 16, 2026 that billing is enabled for the Gemini project used by the hosted backend. Keep billing-enabled paid-service data handling in place while this cloud-enabled store version is offered.
+
+Submission checks passed all 40 Node tests, all eight installed-extension browser smoke checks, and the store origin's backend liveness/readiness/preflight checks. The final live ranking probes hit Google's HTTP 503 high-demand response, surfaced as a recoverable HTTP 502 from the backend. This is a known provider-availability limitation at submission time, not a verified successful live ranking call. The extension retains local completion and its existing bounded retry behavior.
 
 ## Source requirements
 
