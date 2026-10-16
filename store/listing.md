@@ -4,7 +4,7 @@
 
 Name: Typer.AI
 
-Summary: Your words, less typing. Document-grounded gray autocomplete with Tab to accept.
+Summary: Complete words and short phrases from your draft as you type. Press Tab to accept gray text. Optional background AI vocabulary.
 
 Category: Productivity, Tools
 
@@ -18,24 +18,28 @@ Privacy: https://mutms7.github.io/Typer.AI/privacy.html
 
 ## Description
 
-Keep the thought. Skip the repeated typing.
+Less repeated typing in your notes, messages, and drafts.
 
-Typer.AI suggests familiar words and short phrases while you write in supported text fields. Suggestions appear as gray text beside your cursor. Press Tab to accept, or Escape to dismiss.
+Typer.AI offers word and short-phrase completions in supported browser writing fields. It uses a built-in common-word dictionary, vocabulary from your current draft, and optional AI vocabulary. Suggestions appear as gray text at your cursor when a matching completion is available.
 
-LOCAL COMPLETION
-An offline dictionary and vocabulary from your active document power suggestions directly in your browser. Typing doesn't wait for an AI request, and local suggestions keep working without a connection.
+While you write
+Type the beginning of a word. Press Tab to insert the gray text, press Esc to dismiss it, or keep typing. Completions are chosen locally, so accepting a suggestion doesn't require a network request. Typer doesn't offer a suggestion for every word.
 
-OPTIONAL BACKGROUND AI
-Enable Background AI ranking in the popup to refresh a small vocabulary cache with Google Gemini. Typer sends up to 6,000 characters of the active document and up to 300 characters of its title to its hosted service, which forwards them to Gemini. The hosted service uses a billing-enabled Gemini project; prompts and responses aren't used to train Google's models under its paid-service terms. Cloud mode is off by default and requires your permission. No account or API key is needed.
+Choose how much help you want
+Use Suggestion level in the popup to choose More suggestions, Balanced, or Fewer suggestions. Fewer filters for stronger matches; More can include related words and longer phrases. These are matching preferences, not measured accuracy scores. Turn Show completions off or pause Typer on a particular site at any time.
 
-YOUR CONTROLS
-Adjust prediction confidence, pause Typer on individual sites, or turn suggestions off. Document vocabulary stays in memory. The extension stores your preferences locally, and the Typer server doesn't save your document excerpts or AI responses.
+Optional background AI
+Use background AI is off by default. When you enable it and grant access to the hosted service, Google Gemini suggests additional words and short phrases based on your draft's topic, purpose, and tone. Typer reuses that vocabulary locally between refreshes. It doesn't send a new AI request for each keystroke.
 
-WORKS WITH
-Ordinary text inputs, textareas, and contenteditable editors. Google Docs and canvas-based editors aren't supported. The extension skips password fields and common sensitive input types.
+AI refreshes send an excerpt of the active draft (up to 6,000 characters) and a heading or page title (up to 300 characters) to Typer.AI's server and Google Gemini. No account or API key is required. The hosted Gemini project has billing enabled; its paid-service terms exclude using these prompts and responses to train Google's models. Refreshes wait for a pause in typing and may be delayed or unavailable. Local dictionary and document suggestions keep working without AI.
 
-GET STARTED
-Install Typer.AI, refresh a supported writing page, and type a few letters of a word from your document. Keep typing to ignore a suggestion, press Tab to accept it, or press Escape to dismiss it. Optional AI refreshes can take longer when the free backend wakes from inactivity. Local completion remains available.
+Data and controls
+Your preferences are saved on your device. Document vocabulary stays in memory and resets when you switch editors or reload. Typer's server doesn't save draft excerpts or AI responses. Turning background AI off stops new uploads and clears its cached vocabulary. See the privacy policy for provider retention and connection-data details.
+
+Where it works
+Standard text inputs, textareas, and contenteditable writing fields. Google Docs and canvas-based editors aren't supported, and some custom web editors may be incompatible. Password fields and common sensitive input types are skipped.
+
+To get started, install Typer.AI, refresh an existing writing page, and type a partial word in a supported field. You can try it on the website demo before installing.
 
 Website and demo: https://mutms7.github.io/Typer.AI/
 Privacy: https://mutms7.github.io/Typer.AI/privacy.html
@@ -47,11 +51,11 @@ Provide document-grounded word and short-phrase autocomplete in supported browse
 
 ## Permission justifications
 
-storage: Save the user's enabled state, prediction confidence, cloud opt-in, and paused-site preferences locally. No document text or writing history is saved to extension storage.
+storage: Save the user's completion toggle, suggestion level, background AI opt-in, and paused-site preferences locally. No document text or writing history is saved to extension storage.
 
 Host access (http://*/* and https://*/* content-script matches): Show suggestions and insert accepted text in supported writing fields on the sites where the user writes. Content scripts examine the active editor and its title/nearby heading to provide autocomplete, including supported editors in frames. Password fields and common sensitive input types are excluded. The extension doesn't collect browsing history or transmit page URLs.
 
-Optional https://typer-ai.onrender.com/* host permission: Only after the user enables Background AI ranking and grants this permission, send a bounded document excerpt and title to the hosted ranking endpoint. Local completion works without this permission. No other remote host permission is requested.
+Optional https://typer-ai.onrender.com/* host permission: Only after the user enables Use background AI and grants this permission, send a bounded document excerpt and heading or page title to the hosted ranking endpoint. Local completion works without this permission. No other remote host permission is requested.
 
 Remote code: No. All executable JavaScript is bundled with the extension. The backend returns validated vocabulary strings as JSON, which are treated as data and never executed.
 
@@ -74,9 +78,9 @@ No login or API key is required.
 1. Open https://mutms7.github.io/Typer.AI/editor-fixture.html and refresh after installing. This page doesn't load prediction scripts, so any suggestion comes from the installed extension.
 2. Click Textarea notes, move to its end (the text ends in "A v"), and wait briefly. Gray text should offer a completion of "vector". Press Tab to accept. Undo should restore the original text.
 3. Repeat and press Escape to dismiss instead of accepting. Test the Text input and Rich notes fields. Add a dynamic textarea using Add textarea.
-4. Open the extension popup. Toggle suggestions, adjust Prediction confidence, and pause/resume the site.
-5. For optional cloud ranking, enable Background AI ranking and grant access to https://typer-ai.onrender.com/. Use a disposable draft of at least 80 characters in a supported editor and wait until typing is idle. Refreshes are throttled to at least 45 seconds apart. The backend can take about a minute to wake from inactivity, with automatic bounded retries. Network failures don't stop local completion.
-6. Turn Background AI ranking off to stop future uploads and clear cached AI vocabulary.
+4. Open the extension popup. Toggle Show completions, adjust Suggestion level, and pause/resume the site. More suggestions and Fewer suggestions are matching preferences, not calibrated probabilities.
+5. For optional cloud vocabulary, enable Use background AI and grant access to https://typer-ai.onrender.com/. Use a disposable draft of at least 80 characters in a supported editor and wait until typing is idle. Refreshes are throttled to at least 45 seconds apart. The backend can take about a minute to wake from inactivity, with automatic bounded retries. Provider delays and failures don't stop local completion.
+6. Turn Use background AI off to stop future uploads and clear cached AI vocabulary.
 
 ## Upload and identity
 

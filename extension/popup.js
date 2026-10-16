@@ -8,24 +8,29 @@
   try { const url = new URL(tab.url); if (['http:', 'https:'].includes(url.protocol)) hostname = url.hostname; } catch { /* Browser may hide tab URL without host access. */ }
   enabled.checked = settings.enabled; threshold.value = Math.round(settings.threshold * 100); cloud.checked = settings.cloud;
   cloud.disabled = !TYPER_CONFIG.apiUrl;
-  if (!TYPER_CONFIG.apiUrl) document.querySelector('#cloud-help').textContent = 'This build runs locally. Background AI ranking becomes available when the project owner connects the shared server.';
+  if (!TYPER_CONFIG.apiUrl) {
+    document.querySelector('#cloud-help').textContent = 'Background AI is not available in this build. Local completion works without it.';
+    document.querySelector('#cloud-data').hidden = true;
+  }
   function display() {
-    document.querySelector('#level').textContent = settings.threshold >= .9 ? 'Conservative' : settings.threshold < .78 ? 'Expansive' : 'Balanced';
-    site.textContent = hostname ? (settings.excluded.includes(hostname) ? 'Resume on ' : 'Pause on ') + hostname : 'Site controls unavailable here';
+    const level = settings.threshold >= .9 ? 'Fewer suggestions' : settings.threshold < .78 ? 'More suggestions' : 'Balanced';
+    document.querySelector('#level').textContent = level;
+    threshold.setAttribute('aria-valuetext', level);
+    site.textContent = hostname ? (settings.excluded.includes(hostname) ? 'Resume Typer on ' : 'Pause Typer on ') + hostname : 'Site controls unavailable on this page';
     site.disabled = !hostname;
   }
-  async function save() { await chrome.storage.local.set({ settings }); display(); status.textContent = 'Settings saved.'; }
-  enabled.addEventListener('change', () => { settings.enabled = enabled.checked; save(); });
+  async function save(message = 'Settings saved.') { await chrome.storage.local.set({ settings }); display(); status.textContent = message; }
+  enabled.addEventListener('change', () => { settings.enabled = enabled.checked; save(settings.enabled ? 'Completions on.' : 'Completions off.'); });
   threshold.addEventListener('input', () => { settings.threshold = Number(threshold.value) / 100; display(); });
-  threshold.addEventListener('change', save);
+  threshold.addEventListener('change', () => save('Suggestion level saved.'));
   cloud.addEventListener('change', async () => {
     if (cloud.checked) {
       const origin = new URL(TYPER_CONFIG.apiUrl).origin + '/*';
       const granted = await chrome.permissions.request({ origins: [origin] });
-      if (!granted) { cloud.checked = false; status.textContent = 'Cloud access wasn’t enabled. Local predictions are active.'; return; }
+      if (!granted) { cloud.checked = false; status.textContent = 'Background AI stayed off because access was not granted.'; return; }
     }
-    settings.cloud = cloud.checked; save();
+    settings.cloud = cloud.checked; save(settings.cloud ? 'Background AI on. Draft excerpts can now be sent for vocabulary refreshes.' : 'Background AI off. No new excerpts will be sent.');
   });
-  site.addEventListener('click', () => { settings.excluded = settings.excluded.includes(hostname) ? settings.excluded.filter(h => h !== hostname) : [...settings.excluded, hostname]; save(); });
+  site.addEventListener('click', () => { settings.excluded = settings.excluded.includes(hostname) ? settings.excluded.filter(h => h !== hostname) : [...settings.excluded, hostname]; save(settings.excluded.includes(hostname) ? 'Typer paused on ' + hostname + '.' : 'Typer resumed on ' + hostname + '.'); });
   display();
 })();

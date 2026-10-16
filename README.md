@@ -1,13 +1,13 @@
 # Typer.AI
 
-Typer.AI is a Chrome and Edge Manifest V3 extension that suggests words and short phrases from the active document. Suggestions appear as gray text at the cursor, with Tab to accept, Escape to dismiss, and an adjustable confidence threshold.
+Typer.AI is a Chrome and Edge Manifest V3 extension that suggests words and short phrases from the active document. Suggestions appear as gray text at the cursor, with Tab to accept, Escape to dismiss, and an adjustable suggestion level.
 
 [Website and interactive demo](https://mutms7.github.io/Typer.AI/) · [Download the extension](https://github.com/mutms7/Typer.AI/releases/latest/download/typer-ai.zip) · [Privacy](https://mutms7.github.io/Typer.AI/privacy.html)
 
 ## Features
 
 - Local autocomplete using an offline common-word dictionary, document vocabulary, title weighting, and preceding-word context.
-- Gray-text suggestions with Tab acceptance, Escape dismissal, and adjustable confidence.
+- Gray-text suggestions with Tab acceptance, Escape dismissal, and adjustable suggestion level.
 - Optional background Gemini refreshes that cache relevant words and phrases for local lookup.
 - Popup controls to toggle suggestions, enable AI ranking, and pause individual sites.
 - A browser demo that uses the same autocomplete engine as the extension.

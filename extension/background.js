@@ -27,10 +27,10 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
         body: JSON.stringify({ text: message.text, title: message.title }), signal: controller.signal,
         credentials: 'omit', cache: 'no-store'
       });
-      if (!res.ok) return { terms: [], status: 'Local predictions active. Cloud ranking unavailable.' };
+      if (!res.ok) return { terms: [], status: 'AI vocabulary refresh unavailable. Local completion still works.' };
       const data = await res.json();
       return { terms: Array.isArray(data.terms) ? data.terms.filter(x => typeof x === 'string').slice(0, 80) : [] };
-    } catch { return { terms: [], status: 'Local predictions active. Cloud ranking unavailable.' }; }
+    } catch { return { terms: [], status: 'AI vocabulary refresh unavailable. Local completion still works.' }; }
     finally { clearTimeout(timer); pending.delete(id); }
   })().then(reply).catch(() => reply({ terms: [] }));
   return true;
