@@ -90,6 +90,8 @@ Chrome Web Store item ID: gfekhahompbphjlcadpjlmndnglkojnn
 
 Version 0.1.7 was submitted on October 16, 2026. The dashboard confirmed Pending review, with automatic publication after approval. The listing is free of charge and public in all available regions. Its submission includes the description, two screenshots, padded icon, small promotional tile, permission explanations, privacy disclosures, and reviewer instructions. Google flagged broad content-script host access for a potentially longer review; that access supports autocomplete across supported writing fields.
 
+That review was canceled at the owner's request to audit the text. Version 0.1.8 was uploaded and submitted again on October 16, 2026, and the dashboard confirmed Pending review with automatic publication after approval. The popup, manifest, status messages, installation text, privacy policy, store description, permission explanations, and reviewer instructions now use the audited wording in [copy-audit.md](copy-audit.md). All 42 automated tests, eight installed-extension editor checks, and seven popup checks passed. The uploaded archive's SHA-256 is `c4b7eb5c634cf9ad60f09bd9e0d378ab5ff215d4c70d57bd8a98b4bb9564614e`.
+
 The store version and unpacked release have different IDs. The backend must allow both exact extension origins. Before submission, verify the store origin's readiness/preflight, test the uploaded package locally, and confirm the public privacy page is deployed.
 
 The owner confirmed on October 16, 2026 that billing is enabled for the Gemini project used by the hosted backend. Keep billing-enabled paid-service data handling in place while this cloud-enabled store version is offered.
