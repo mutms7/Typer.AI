@@ -125,6 +125,7 @@ The tests cover candidate ranking, phrase reachability, refresh scheduling, requ
 | `npm test` | Run automated engine and backend checks |
 | `npm run benchmark` | Run the modeled request benchmark |
 | `npm run package` | Build the unpacked extension, ZIP, and website engine copies |
+| `npm run package:store` | Build a separate Chrome Web Store ZIP with store-assigned identity |
 | `npm run demo:vocabulary` | Regenerate sample vocabulary using the configured provider |
 | `npm run deployment:check -- <api-origin> <allowed-origin>` | Check liveness, readiness, and origin permission without calling Gemini |
 
@@ -135,6 +136,8 @@ GitHub Actions runs checks and packaging. The Pages workflow publishes `public/`
 The default `render.yaml` configures a free Render Docker service with Supabase for persistent quotas. `server/supabase-quota.sql` defines the database table and reservation functions. `render-sqlite.yaml` provides an optional configuration for hosting SQLite on a persistent disk.
 
 For a hosted extension build, set `TYPER_API_URL` to the backend's HTTPS origin before packaging. Set the same public URL as a GitHub repository variable for the Pages build. See [deployment instructions](docs/deployment.md) for server configuration and [verification notes](docs/verification.md) for release checks.
+
+Chrome Web Store submission assets, permission explanations, and reviewer instructions are in [`store/`](store/listing.md). The store build uses a separate extension ID from the unpacked download, and its exact origin must be allowed by the backend.
 
 ## License
 

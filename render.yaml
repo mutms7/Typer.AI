@@ -20,7 +20,7 @@ services:
       - key: IP_HASH_SECRET
         generateValue: true
       - key: ALLOWED_ORIGINS
-        value: https://mutms7.github.io,chrome-extension://gneblpphgipcdhphnclghfmeoageenbg
+        value: https://mutms7.github.io,chrome-extension://gneblpphgipcdhphnclghfmeoageenbg,chrome-extension://gfekhahompbphjlcadpjlmndnglkojnn
       - key: DAILY_REQUEST_BUDGET
         value: '200'
       - key: MONTHLY_REQUEST_BUDGET

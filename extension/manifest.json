@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Typer.AI",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "icons": {
     "16": "logo-16.png",
     "32": "logo-32.png",

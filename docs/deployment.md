@@ -27,6 +27,8 @@ Set `AI_PROVIDER=gemini`, `GEMINI_API_KEY`, and `GEMINI_MODEL=gemini-3.1-flash-l
 
 Production startup rejects missing provider keys, missing/placeholder IP hash secrets, malformed origins, invalid ports, and invalid budget/proxy settings. Use a stable random `IP_HASH_SECRET` of at least 32 characters. Errors identify settings without printing secret values. Development mode works without a provider key.
 
+The hosted Gemini project has billing enabled, as confirmed by the owner on October 16, 2026. Keep paid-service data handling enabled for cloud-connected Chrome Web Store distribution: prompts and responses must not be used for general-purpose model training or unrelated product improvement. The popup, privacy policy, and store disclosures describe this configuration. Do not revert the hosted project to unpaid-service data handling while offering that store version.
+
 The default request limits are 200 daily attempts, 3,000 monthly attempts, 20 per-IP attempts per hour, and 3 concurrent requests. Failed provider attempts consume allowances. Limits cap request counts, not exact currency; configure provider spending limits and alerts separately. Gemini output is capped at 4,096 tokens; OpenAI output at 1,600. Excerpts are bounded at 6,000 characters, titles at 300 characters.
 
 Keep `TRUST_PROXY=false` unless the proxy overwrites and validates `X-Forwarded-For` and direct backend access is blocked. Otherwise clients can spoof their rate-limit identity. With proxy trust disabled, a reverse proxy can make all users share an IP allowance. Do not enable proxy trust without checking the actual hosting topology.
