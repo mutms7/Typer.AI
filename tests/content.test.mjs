@@ -37,6 +37,7 @@ async function contentHarness(cloudEnabled = true) {
     title(value) { title = value; },
     visibility(hidden) { document.hidden = hidden; listeners.get('visibilitychange')(); },
     composition(start) { listeners.get(start ? 'compositionstart' : 'compositionend')(); },
+    pageContext() { let result; settingsChanged({type:'pageContext'}, {}, value=>{result=value;}); return result; },
     changeText() { text += 'New context. '; listeners.get('input')({ target: active }); },
     settings(patch) { settingsChanged({ type: 'settingsChanged', settings: { ...settings, ...patch } }); },
     response(value) { response = value; },
@@ -124,4 +125,11 @@ test('custom editor titles are bounded before sending a cloud request', async ()
   h.title('Long heading '.repeat(50));
   await h.fire();
   assert.equal(h.requests[0].title.length, 300);
+});
+
+test('page context exposes only the current frame hostname for popup site controls', async () => {
+  const h = await contentHarness();
+  assert.equal(h.pageContext().hostname,'example.com');
+  assert.deepEqual(Object.keys(h.pageContext()),['hostname']);
+  assert.equal(h.calls,0);
 });

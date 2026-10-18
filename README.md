@@ -2,7 +2,7 @@
 
 Typer.AI is a Chrome and Edge Manifest V3 extension that suggests words and short phrases from the active document. Suggestions appear as gray text at the cursor, with Tab to accept, Escape to dismiss, and an adjustable suggestion level.
 
-[Website and interactive demo](https://mutms7.github.io/Typer.AI/) · [Download the extension](https://github.com/mutms7/Typer.AI/releases/latest/download/typer-ai.zip) · [Privacy](https://mutms7.github.io/Typer.AI/privacy.html)
+[Website and interactive demo](https://mutms7.github.io/Typer.AI/) · [Chrome Web Store](https://chromewebstore.google.com/detail/typerai/gfekhahompbphjlcadpjlmndnglkojnn) · [Manual download](https://github.com/mutms7/Typer.AI/releases/latest/download/typer-ai.zip) · [Privacy](https://mutms7.github.io/Typer.AI/privacy.html)
 
 ## Features
 
@@ -57,6 +57,10 @@ The website shares the extension's autocomplete engine and uses precomputed Gemi
 See [the architecture documentation](docs/architecture.md) for scoring and refresh details.
 
 ## Install the extension
+
+[Install Typer.AI from the Chrome Web Store](https://chromewebstore.google.com/detail/typerai/gfekhahompbphjlcadpjlmndnglkojnn), then refresh writing pages that were already open. The store version updates through the browser.
+
+For a manual Chrome or Edge install:
 
 1. [Download the latest ZIP](https://github.com/mutms7/Typer.AI/releases/latest/download/typer-ai.zip) and extract it into a folder you'll keep.
 2. Open `chrome://extensions` or `edge://extensions` and enable Developer mode.

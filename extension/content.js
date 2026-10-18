@@ -122,7 +122,8 @@
   });
   if (typeof chrome !== 'undefined' && chrome.runtime?.id) {
     chrome.runtime.sendMessage({ type: 'settings' }).then(r => { if (r?.settings) settings = r.settings; focus(document.activeElement); }).catch(() => {});
-    chrome.runtime.onMessage.addListener(message => {
+    chrome.runtime.onMessage.addListener((message, sender, reply) => {
+      if (message?.type === 'pageContext') { reply({ hostname: location.hostname }); return; }
       if (message.type === 'settingsChanged') {
         const wasCloud = settings.cloud;
         settings = message.settings; epoch++;

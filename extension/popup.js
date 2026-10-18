@@ -6,6 +6,14 @@
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   let hostname;
   try { const url = new URL(tab.url); if (['http:', 'https:'].includes(url.protocol)) hostname = url.hostname; } catch { /* Browser may hide tab URL without host access. */ }
+  // Content-script access doesn't always expose tab.url to the popup. Ask only
+  // the active tab's top frame for its hostname instead of requesting tabs access.
+  if (!hostname && tab?.id != null) {
+    try {
+      const context = await chrome.tabs.sendMessage(tab.id, { type: 'pageContext' }, { frameId: 0 });
+      if (typeof context?.hostname === 'string' && context.hostname) hostname = context.hostname;
+    } catch { /* Restricted pages and tabs without the content script have no site control. */ }
+  }
   enabled.checked = settings.enabled; threshold.value = Math.round(settings.threshold * 100); cloud.checked = settings.cloud;
   cloud.disabled = !TYPER_CONFIG.apiUrl;
   if (!TYPER_CONFIG.apiUrl) {
