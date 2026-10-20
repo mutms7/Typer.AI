@@ -15,3 +15,13 @@ Version 0.1.9 asks the existing top-frame content script for its current hostnam
 All 45 Node tests pass, including regressions for a withheld tab URL, missing content script, and the hostname-only response. In an isolated Edge profile with the store ID, the fixed build passed the eight editor checks, seven popup checks, and three actual page-control checks: pause blocks acceptance, resume restores acceptance, and global disabling blocks acceptance.
 
 The corrected package is built at dist/chrome-web-store/typer-ai.zip. After Google verification, version 0.1.9 was uploaded and submitted on October 18, 2026 with automatic publication after approval enabled. The developer dashboard confirmed Pending review, draft version 0.1.9 (revision 00003), and published version 0.1.8. The launch follow-up remains active until the corrected store version is published and any remaining launch checks are resolved. The website's main install link now points to the live store listing; the ZIP remains available for manual installation.
+
+## Published 0.1.9 verification, October 20, 2026
+
+The public listing now shows version 0.1.9, updated October 20, 2026, and Add to Chrome. Google's downloaded CRX3 passed publisher-signature and extension-ID verification. Its seven core source/UI files match the repository. The signed payload was loaded in an isolated Edge profile with only its public identity key restored for unpacked loading. This verifies the distributed code, not a native installation through the store.
+
+The released package passed all eight editor checks, seven popup checks, and three actual page-control checks, including site pause/resume with a withheld tab URL. All 45 Node tests pass. The website, privacy page, backend health and database readiness returned HTTP 200; the backend reports version 0.1.9.
+
+AI remains off by default. The unchanged optional-permission package did not save cloud opt-in when headless Edge couldn't grant the native host-permission prompt. To test the rest of the cloud flow, a separate isolated copy of the published payload pregranted only the existing hosted API origin. Its popup opt-in and content-script background refresh returned HTTP 200 with 80 Gemini entries from disposable mathematics notes. Cloud mode was disabled afterward. This is a successful extension-to-provider call, not just a readiness check. Native permission-dialog acceptance remains unverified in this environment and is not claimed as passing.
+
+No new launch failures were found. Publication and the available launch checks are complete; the one-time review follow-up can stop with the native-dialog limitation disclosed.
