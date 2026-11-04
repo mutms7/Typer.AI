@@ -7,13 +7,23 @@ async function settings() {
   const { settings } = await chrome.storage.local.get('settings');
   return { ...DEFAULTS, ...settings };
 }
+async function topHostname(tabId) {
+  // Query our top-frame content script, rather than trusting page messages or
+  // requiring access to browsing history through the tabs permission.
+  try {
+    const context = await chrome.tabs.sendMessage(tabId, { type: 'pageContext' }, { frameId: 0 });
+    return typeof context?.hostname === 'string' ? context.hostname : '';
+  } catch { return ''; }
+}
 chrome.runtime.onMessage.addListener((message, sender, reply) => {
   (async () => {
     const s = await settings();
-    if (message?.type === 'settings') return { settings: s, cloudAvailable: Boolean(TYPER_CONFIG.apiUrl) };
+    const outerHost = sender.tab?.id != null ? (sender.frameId === 0 ? new URL(sender.url).hostname : await topHostname(sender.tab.id)) : '';
+    if (message?.type === 'settings') return { settings: s, topHostname: outerHost, cloudAvailable: Boolean(TYPER_CONFIG.apiUrl) };
     if (message?.type !== 'rank' || !sender.tab || !s.enabled || !s.cloud || !TYPER_CONFIG.apiUrl) return { terms: [] };
+    if (!outerHost) return { terms: [] };
     const host = new URL(sender.url).hostname;
-    if (s.excluded.includes(host)) return { terms: [] };
+    if (s.excluded.includes(host) || s.excluded.includes(outerHost)) return { terms: [] };
     const id = sender.tab.id + ':' + sender.frameId;
     const last = recent.get(id) || 0;
     if (Date.now() - last < 45000 || pending.has(id)) return { terms: [] };
@@ -35,11 +45,19 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
   })().then(reply).catch(() => reply({ terms: [] }));
   return true;
 });
+let settingsVersion = 0;
 chrome.storage.onChanged.addListener((changes) => {
   if (changes.settings) {
+    const version = ++settingsVersion;
     for (const controller of pending.values()) controller.abort();
     chrome.tabs.query({}).then(tabs => {
-      for (const tab of tabs) chrome.tabs.sendMessage(tab.id, { type: 'settingsChanged', settings: { ...DEFAULTS, ...changes.settings.newValue } }).catch(() => {});
+      for (const tab of tabs) {
+        topHostname(tab.id).then(hostname => {
+          if (version !== settingsVersion) return;
+          return chrome.tabs.sendMessage(tab.id, { type: 'settingsChanged', topHostname: hostname,
+            settings: { ...DEFAULTS, ...changes.settings.newValue } });
+        }).catch(() => {});
+      }
     });
   }
 });

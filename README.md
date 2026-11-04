@@ -28,6 +28,11 @@ Typer.AI is a Chrome and Edge Manifest V3 extension that suggests words and shor
 
 The application has no third-party runtime dependencies.
 
+For editor layout regressions, install development dependencies with `npm ci`,
+install the test browser with `npx playwright install chromium`, then run
+`npm run test:browser`. These checks use an isolated browser and synthetic text;
+they don't open your existing browser profile or personal documents.
+
 ## How it works
 
 ### Local completion

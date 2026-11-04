@@ -18,7 +18,9 @@
   shadow.innerHTML = '<span class="ghost"></span><span class="hint">Tab</span>';
   const ghost = shadow.querySelector('.ghost'), hint = shadow.querySelector('.hint');
   document.documentElement.append(host);
-  const allowed = () => settings.enabled && !settings.excluded.includes(location.hostname) && !document.hidden;
+  const extensionContext = typeof chrome !== 'undefined' && chrome.runtime?.id;
+  let topHostname = location.hostname, contextReady = !extensionContext;
+  const allowed = () => contextReady && settings.enabled && !settings.excluded.includes(location.hostname) && !settings.excluded.includes(topHostname) && !document.hidden;
   const hide = () => { suggestion = null; ghost.textContent = ''; hint.style.display = 'none'; };
   hide();
   const currentTitle = el => (el.getAttribute('data-typer-title') || el.closest('article,main,form')?.querySelector('h1,h2')?.textContent || document.title).slice(0, 300);
@@ -28,6 +30,7 @@
   }
   function render() {
     frame = null;
+    bindWordPanel();
     if (!active || E.editorFor(document.activeElement) !== active || !allowed() || composing || !E.eligible(active)) return hide();
     const snap = E.snapshot(active);
     if (!snap) return hide();
@@ -41,9 +44,10 @@
     if (dismissed === signature) return hide();
     suggestion = engine.predict(snap.before, settings.threshold, snap.after);
     if (!suggestion) return hide();
-    const point = E.caret(active, snap), bounds = active.getBoundingClientRect();
+    const point = E.caret(active, snap), bounds = point?.bounds || active.getBoundingClientRect();
     if (!point || point.left < bounds.left || point.left > bounds.right - 12 || point.top < bounds.top || point.top + point.height > bounds.bottom + 3) return hide();
-    Object.assign(ghost.style, { left: point.left + 'px', top: point.top + 'px', maxWidth: Math.max(0, Math.min(bounds.right, innerWidth) - point.left - 4) + 'px', fontFamily: point.style.fontFamily, fontSize: point.style.fontSize, fontWeight: point.style.fontWeight, fontStyle: point.style.fontStyle, letterSpacing: point.style.letterSpacing, lineHeight: point.height + 'px', height: point.height + 'px' });
+    Object.assign(ghost.style, { left: point.left + 'px', top: point.top + 'px', maxWidth: Math.max(0, Math.min(bounds.right, innerWidth) - point.left - 4) + 'px', fontFamily: point.style.fontFamily, fontSize: point.style.fontSize, fontWeight: point.style.fontWeight, fontStyle: point.style.fontStyle, letterSpacing: point.style.letterSpacing, wordSpacing: point.style.wordSpacing,
+      textTransform: point.style.textTransform === 'capitalize' ? 'none' : point.style.textTransform, lineHeight: point.height + 'px', height: point.height + 'px' });
     ghost.textContent = suggestion.suffix;
     Object.assign(hint.style, { left: Math.min(innerWidth - 38, point.left) + 'px', top: Math.min(innerHeight - 23, point.top + point.height + 3) + 'px', display: 'block' });
   }
@@ -112,6 +116,21 @@
   document.addEventListener('pointerdown', () => { hide(); schedule(); }, true);
   document.addEventListener('scroll', schedule, true);
   window.addEventListener('resize', schedule);
+  // Word updates its painted canvas caret after the input/selection event.
+  // Reposition when that rendering catches up, rather than measuring the old
+  // invisible input buffer during the event's first animation frame.
+  let wordPanel, wordObserver;
+  function bindWordPanel() {
+    if (!/(^|\.)officeapps\.live\.com$/.test(location.hostname)) return;
+    const panel = document.getElementById('WACViewPanel');
+    if (panel === wordPanel) return;
+    wordObserver?.disconnect(); wordPanel = panel;
+    if (panel) {
+      wordObserver = new MutationObserver(schedule);
+      wordObserver.observe(panel, { subtree: true, childList: true, attributes: true, attributeFilter: ['style', 'class'] });
+    }
+  }
+  bindWordPanel();
   document.addEventListener('visibilitychange', () => {
     clearTimeout(cloudTimer);
     if (document.hidden) hide();
@@ -121,10 +140,24 @@
     }
   });
   if (typeof chrome !== 'undefined' && chrome.runtime?.id) {
-    chrome.runtime.sendMessage({ type: 'settings' }).then(r => { if (r?.settings) settings = r.settings; focus(document.activeElement); }).catch(() => {});
+    let settingsVersion = 0;
+    async function loadSettings() {
+      const version = settingsVersion;
+      try {
+        const r = await chrome.runtime.sendMessage({ type: 'settings' });
+        if (version !== settingsVersion) return;
+        if (!r?.settings || !r?.topHostname) { setTimeout(loadSettings, 1000); return; }
+        settings = r.settings; topHostname = r.topHostname; contextReady = true; focus(document.activeElement);
+      } catch { /* Keep frames inactive if the extension context is unavailable. */ }
+    }
+    loadSettings();
     chrome.runtime.onMessage.addListener((message, sender, reply) => {
       if (message?.type === 'pageContext') { reply({ hostname: location.hostname }); return; }
       if (message.type === 'settingsChanged') {
+        settingsVersion++;
+        contextReady = Boolean(message.topHostname);
+        if (message.topHostname) topHostname = message.topHostname;
+        else setTimeout(loadSettings, 1000);
         const wasCloud = settings.cloud;
         settings = message.settings; epoch++;
         if (!settings.cloud) { ranks = []; engine.setRanks([]); }

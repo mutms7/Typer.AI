@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
 const source = readFileSync(new URL('../extension/content.js', import.meta.url), 'utf8');
 
-async function contentHarness(cloudEnabled = true) {
+async function contentHarness(cloudEnabled = true, options = {}) {
   let now = 100000, text = 'A vector has magnitude and direction. '.repeat(3), response = { terms: ['quaternion'] }, calls = 0;
   const timers = new Map(), listeners = new Map(), rankingUpdates = [];
   let nextTimer = 1, settingsChanged;
@@ -13,6 +13,7 @@ async function contentHarness(cloudEnabled = true) {
   const node = () => ({ style: {}, textContent: '' });
   const host = { dataset: {}, style: {}, setAttribute() {}, attachShadow: () => ({ adoptedStyleSheets: [], querySelector: node }) };
   const settings = { enabled: true, threshold: .78, cloud: cloudEnabled, excluded: [] };
+  let settingsResponse = options.initialResponse ?? { settings, topHostname: 'example.com' };
   class Engine { setRanks(terms) { rankingUpdates.push([...terms]); } }
   const document = {
       activeElement: active, hidden: false, title: 'Vectors', documentElement: { append() {} }, createElement: () => host,
@@ -27,11 +28,11 @@ async function contentHarness(cloudEnabled = true) {
     Date: { now: () => now }, requestAnimationFrame: () => 1,
     setTimeout: (fn, delay) => { const id = nextTimer++; timers.set(id, { fn, delay }); return id; }, clearTimeout: id => timers.delete(id),
     chrome: { runtime: { id: 'test-extension',
-      sendMessage: async message => message.type === 'settings' ? { settings } : (requests.push(message), calls++, response),
+      sendMessage: async message => message.type === 'settings' ? settingsResponse : (requests.push(message), calls++, response),
       onMessage: { addListener: listener => { settingsChanged = listener; } }
     } }
   });
-  await Promise.resolve();
+  await Promise.resolve(); await Promise.resolve(); await Promise.resolve();
   return {
     get calls() { return calls; }, rankingUpdates, requests,
     title(value) { title = value; },
@@ -39,7 +40,9 @@ async function contentHarness(cloudEnabled = true) {
     composition(start) { listeners.get(start ? 'compositionstart' : 'compositionend')(); },
     pageContext() { let result; settingsChanged({type:'pageContext'}, {}, value=>{result=value;}); return result; },
     changeText() { text += 'New context. '; listeners.get('input')({ target: active }); },
-    settings(patch) { settingsChanged({ type: 'settingsChanged', settings: { ...settings, ...patch } }); },
+    settings(patch, topHostname = 'example.com') { settingsChanged({ type: 'settingsChanged', topHostname, settings: { ...settings, ...patch } }); },
+    settingsResponse(value) { settingsResponse = value; },
+    async settle() { await Promise.resolve(); await Promise.resolve(); },
     response(value) { response = value; },
     time(value) { now = 100000 + value; },
     async fire() { const [id, timer] = [...timers].at(-1); timers.delete(id); await timer.fn(); return timer.delay; },
@@ -132,4 +135,48 @@ test('page context exposes only the current frame hostname for popup site contro
   assert.equal(h.pageContext().hostname,'example.com');
   assert.deepEqual(Object.keys(h.pageContext()),['hostname']);
   assert.equal(h.calls,0);
+});
+
+test('an unresolved outer site blocks initial cloud work', async () => {
+  let resolve;
+  const h = await contentHarness(true, { initialResponse: new Promise(r => { resolve = r; }) });
+  await h.fire();
+  assert.equal(h.calls, 0);
+  resolve({settings:{enabled:true,threshold:.78,cloud:true,excluded:[]},topHostname:'outer.test'});
+  await h.settle();
+  await h.fire();
+  assert.equal(h.calls, 1);
+});
+
+test('missing outer context retries without sending draft text', async () => {
+  const settings = {enabled:true,threshold:.78,cloud:true,excluded:[]};
+  const h = await contentHarness(true, { initialResponse: {settings,topHostname:''} });
+  assert.equal(h.calls, 0);
+  h.settingsResponse({settings,topHostname:'outer.test'});
+  assert.equal(await h.fire(), 1000);
+  assert.equal(h.calls, 0);
+  await h.fire();
+  assert.equal(h.calls, 1);
+});
+
+test('outer-site pause blocks a child frame and resume restores refresh', async () => {
+  const h = await contentHarness();
+  h.settings({excluded:['outer.test']},'outer.test');
+  assert.equal(h.delay, undefined);
+  h.changeText();
+  assert.equal(h.calls, 0);
+  h.settings({excluded:[]},'outer.test');
+  await h.fire();
+  assert.equal(h.calls, 1);
+});
+
+test('a stale startup response cannot overwrite newer disabled settings', async () => {
+  let resolve;
+  const h = await contentHarness(true, { initialResponse: new Promise(r => { resolve = r; }) });
+  h.settings({enabled:false},'outer.test');
+  resolve({settings:{enabled:true,threshold:.78,cloud:true,excluded:[]},topHostname:'outer.test'});
+  await h.settle();
+  h.changeText();
+  assert.equal(h.calls, 0);
+  assert.equal(h.delay, undefined);
 });
