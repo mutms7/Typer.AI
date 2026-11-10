@@ -1,6 +1,6 @@
 {
   "name": "typer-ai",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "private": true,
   "description": "Document-grounded autocomplete. Background AI ranking, instant local completion.",
   "engines": {
