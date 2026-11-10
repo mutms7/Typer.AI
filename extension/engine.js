@@ -23,18 +23,23 @@
   const tokens = s => [...s.matchAll(TOKEN)].map(m => ({ text: m[0], key: normalize(m[0]), start: m.index, end: m.index + m[0].length }));
   class Engine {
     constructor() { this.words = new Map(); this.prefixes = new Map(); this.next = new Map(); this.ranks = new Map(); }
-    index(documentText, title = '') {
+    index(documentText, title = '', caret = -1) {
       this.words.clear(); this.prefixes.clear(); this.next.clear(); this.ranks.clear();
       this.cloudPhrases = [];
       for (const [word, prior] of Object.entries(COMMON_WORDS)) this.words.set(normalize(word), { word, count: 0, heading: false, common: true, prior });
       const text = documentText.slice(0, 30000), ts = tokens(text);
+      // The word touching the caret is still being typed. Keep the fragment out of the
+      // vocabulary and continuation evidence until the writer moves past it.
+      const typing = caret >= 0 ? ts.findIndex(t => t.start <= caret && caret <= t.end) : -1;
+      const typingKey = typing >= 0 ? ts[typing].key : null;
       const addWord = (word, weight, heading) => {
         if (word.key.length < 2 || word.key.length > 64) return;
         const old = this.words.get(word.key) || { word: word.text, count: 0, heading: false };
         old.count += weight; old.heading ||= heading; this.words.set(word.key, old);
       };
-      for (const t of ts) addWord(t, 1, false);
-      for (const t of tokens(title.slice(0, 500))) addWord(t, 7, true);
+      ts.forEach((t, i) => { if (i !== typing) addWord(t, 1, false); });
+      // A heading being edited in place is also the live fragment, not a title word.
+      for (const t of tokens(title.slice(0, 500))) if (t.key !== typingKey) addWord(t, 7, true);
       for (const [word] of this.words) {
         for (let n = 1; n < word.length; n++) {
           const p = word.slice(0, n);
@@ -44,9 +49,11 @@
       }
       // Evidence for continuations stays inside sentence and paragraph boundaries.
       for (let i = 0; i < ts.length - 1; i++) {
+        if (i + 1 === typing) continue;
         if (!/^\s+$/.test(text.slice(ts[i].end, ts[i + 1].start))) continue;
         if (/\n\s*\n/.test(text.slice(ts[i].end, ts[i + 1].start))) continue;
         for (let n = 1; n <= 3 && i - n + 1 >= 0; n++) {
+          if (typing >= i - n + 1 && typing <= i) break;
           const prior = ts.slice(i - n + 1, i + 1);
           if (prior.some((t, j) => j && !/^[ \t]+$/.test(text.slice(prior[j - 1].end, t.start)))) continue;
           const key = prior.map(t => t.key).join(' ');

@@ -26,8 +26,14 @@
   const currentTitle = el => (el.getAttribute('data-typer-title') || el.closest('article,main,form')?.querySelector('h1,h2')?.textContent || document.title).slice(0, 300);
   function rebuild(snap) {
     indexedText = snap.text.slice(0, 30000); title = currentTitle(active);
-    engine.index(indexedText, title); engine.setRanks(ranks); lastIndex = performance.now();
+    engine.index(indexedText, title, snap.before.length); engine.setRanks(ranks); lastIndex = performance.now();
   }
+  // The word at the caret is unfinished, so it never reaches the ranking request either.
+  const WORD_END = /[\p{L}\p{N}]+(?:['’\-][\p{L}\p{N}]+)*(?:\+{1,2}|#)?$/u, WORD_START = /^[\p{L}\p{N}]+(?:['’\-][\p{L}\p{N}]+)*(?:\+{1,2}|#)?/u;
+  const withoutLiveWord = snap => {
+    const before = snap.before.replace(WORD_END, ''), after = snap.after.replace(WORD_START, '');
+    return { text: before + after, before };
+  };
   function render() {
     frame = null;
     bindWordPanel();
@@ -56,7 +62,8 @@
     if (!active || E.editorFor(document.activeElement) !== active || !allowed() || !settings.cloud || composing) return;
     const remaining = 45000 - (Date.now() - lastCloud);
     if (remaining > 0) { clearTimeout(cloudTimer); cloudTimer = setTimeout(cloud, remaining); return; }
-    const snap = E.snapshot(active); if (!snap || snap.text.length < 80) return;
+    const live = E.snapshot(active); if (!live || live.text.length < 80) return;
+    const snap = withoutLiveWord(live);
     // First paragraphs plus recent local context. Never gather surrounding page text.
     const text = snap.text.length <= 6000 ? snap.text : snap.text.slice(0, 2500) + '\n' + snap.before.slice(-3400);
     if (text === lastExcerpt) return;

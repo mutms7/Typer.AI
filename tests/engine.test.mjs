@@ -150,3 +150,34 @@ test('phrase matching respects ambiguity, punctuation, confidence and document e
   engine.setRanks(['find the median']);
   assert.equal(engine.predict('find th').suffix, 'e mean');
 });
+
+test('the word being typed at the caret stays out of the word bank', () => {
+  const text = 'The document has a summary. We wrote the documen';
+  const e = new Engine().index(text, '', text.length);
+  assert.equal(e.words.has('documen'), false);
+  assert.equal(e.words.has('document'), true);
+  assert.equal(e.next.get('the')?.has('documen') ?? false, false);
+  assert.equal(e.predict('The doc').suffix, 'ument');
+  // Without the caret, the old behavior indexed the fragment.
+  assert.equal(new Engine().index(text, '').words.has('documen'), true);
+});
+
+test('a fragment typed mid-sentence is skipped but its neighbours still count', () => {
+  const text = 'Linear algebra is fun. Linear algeb is fun.';
+  const caret = text.indexOf('algeb is') + 'algeb'.length;
+  const e = new Engine().index(text, '', caret);
+  assert.equal(e.words.has('algeb'), false);
+  assert.equal(e.next.get('linear').get('algebra').count, 1);
+  assert.equal(e.next.get('algeb'), undefined);
+  assert.equal(e.next.get('linear').has('algeb'), false);
+});
+
+test('a heading being edited is not treated as a title word', () => {
+  const e = new Engine().index('Vecto', 'Vecto', 5);
+  assert.equal(e.words.has('vecto'), false);
+});
+
+test('a finished word is indexed once the writer moves past it', () => {
+  const text = 'We wrote the documen ';
+  assert.equal(new Engine().index(text, '', text.length).words.has('documen'), true);
+});
