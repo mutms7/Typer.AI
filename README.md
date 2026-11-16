@@ -148,6 +148,22 @@ For a hosted extension build, set `TYPER_API_URL` to the backend's HTTPS origin 
 
 Chrome Web Store submission assets, permission explanations, and reviewer instructions are in [`store/`](store/listing.md). The store build uses a separate extension ID from the unpacked download, and its exact origin must be allowed by the backend.
 
+## Getting through Chrome Web Store review
+
+Typer.AI runs content scripts on every site and reads the text in the active editor, so its first submission was flagged for a potentially longer review. Version 0.1.8 was submitted on October 16, 2026 and was live on October 18. Version 0.1.9, a bug fix, was submitted on October 18 and live on October 20. That's one extension's timeline, not a typical one.
+
+What the submission did on purpose:
+
+- **One required permission.** The manifest asks for `storage` only. The popup needs the current site's hostname for its pause control, which usually means adding `tabs`. It asks the content script that's already running on the page for the hostname, so no permission was added.
+- **Optional access to the backend.** The hosted API is an optional host permission for one exact origin, requested when the user turns on AI ranking. Local completion works without it.
+- **A specific justification for the broad host access.** It says what the content script reads, that password fields are skipped, and that page URLs and browsing history aren't collected.
+- **A hosted test page for the reviewer.** The [reviewer instructions](store/listing.md#reviewer-test-instructions) point to a fixture page with text fields ready to type in, and give the expected result after each step.
+- **Limits stated in the listing.** Google Docs and canvas editors aren't supported, and the description says so.
+
+The full paperwork is in [`store/listing.md`](store/listing.md): the single purpose statement, each permission justification, the data disclosures, and the reviewer instructions. [`store/copy-audit.md`](store/copy-audit.md) lists the wording changes made before resubmitting.
+
+If your own extension was rejected, the email names a two-word code such as "Purple Potassium". I wrote up what each one means in a separate repository: [Chrome Web Store rejection codes, in plain English](https://github.com/mutms7/chrome-web-store-rejection-codes).
+
 ## License
 
 [MIT](LICENSE).
