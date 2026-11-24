@@ -10,4 +10,6 @@ The release adds no extension permissions and leaves background AI off by defaul
 
 ## Submission
 
-Not yet submitted. The Chrome Web Store package is `dist/chrome-web-store/typer-ai.zip`.
+Version 0.1.12 was uploaded to the existing Chrome Web Store listing and submitted for review on November 23, 2026, through the dashboard by the publisher (Chrome doesn't allow extensions or automation to operate the Web Store, so this step wasn't scripted or observed here). The package was `dist/chrome-web-store/typer-ai.zip` (SHA-256 prefix `9802a77ff196ef33`), with the listing's "Where it works" paragraph updated to include Google Docs. The published version stays at the previous release until Google approves this update.
+
+Not yet pushed to GitHub, so the website and GitHub release still reflect 0.1.11.
