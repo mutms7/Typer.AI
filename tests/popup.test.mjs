@@ -19,12 +19,15 @@ async function popupHarness(apiUrl = 'https://typer-ai.onrender.com', granted = 
 test('popup explains filtering with accessible levels and saves the same threshold', async () => {
   const h = await popupHarness();
   assert.equal(h.node('#level').textContent,'Balanced');
-  await h.change('#threshold',65,'input');
-  assert.equal(h.node('#level').textContent,'More suggestions');
-  assert.equal(h.node('#threshold').attrs['aria-valuetext'],'More suggestions');
+  assert.equal(h.node('#threshold').value,83);
+  // Right is more suggestions, so the far right maps to the loosest threshold.
   await h.change('#threshold',96,'input');
+  assert.equal(h.node('#level').textContent,'More suggestions');
+  assert.equal(h.saved.length,0);
+  assert.equal(h.node('#threshold').attrs['aria-valuetext'],'More suggestions');
+  await h.change('#threshold',65,'input');
   assert.equal(h.node('#level').textContent,'Fewer suggestions');
-  await h.change('#threshold',96);
+  await h.change('#threshold',65);
   assert.equal(h.saved.at(-1).settings.threshold,.96);
   assert.equal(h.node('#status').textContent,'Suggestion level saved.');
 });

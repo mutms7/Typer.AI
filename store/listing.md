@@ -37,7 +37,7 @@ Data and controls
 Your preferences are saved on your device. Document vocabulary stays in memory and resets when you switch editors or reload. Typer's server doesn't save draft excerpts or AI responses. Turning background AI off stops new uploads and clears its cached vocabulary. See the privacy policy for provider retention and connection-data details.
 
 Where it works
-Standard text inputs, textareas, and contenteditable writing fields. Google Docs and canvas-based editors aren't supported, and some custom web editors may be incompatible. Password fields and common sensitive input types are skipped.
+Standard text inputs, textareas, contenteditable writing fields, and Google Docs. Other canvas-based editors aren't supported, and some custom web editors may be incompatible. Password fields and common sensitive input types are skipped.
 
 To get started, install Typer.AI, refresh an existing writing page, and type a partial word in a supported field. You can try it on the website demo before installing.
 

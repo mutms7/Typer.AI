@@ -1,14 +1,19 @@
 (function (root) {
   'use strict';
+  // Google Docs needs its own adapter (docs.js). The website demo loads without it.
+  const docs = () => root.TyperDocs;
   const isPlain = el => el instanceof HTMLTextAreaElement || el instanceof HTMLInputElement;
   const props = ['fontFamily','fontSize','fontWeight','fontStyle','letterSpacing','lineHeight','textTransform','textIndent','textAlign','wordSpacing','paddingTop','paddingRight','paddingBottom','paddingLeft','borderTopWidth','borderRightWidth','borderBottomWidth','borderLeftWidth','boxSizing','tabSize','direction'];
   function eligible(el) {
+    if (docs()?.isEditor(el)) return true;
     if (!(el instanceof HTMLElement) || el.closest('[data-typer-ignore], [data-typer-ui]')) return false;
     if (el.closest('[aria-readonly="true"], [contenteditable="false"]')) return false;
     if (el instanceof HTMLInputElement) return el.type === 'text' && !el.disabled && !el.readOnly && !/password|email|card|cc-|one-time|username/i.test(el.autocomplete + ' ' + el.name + ' ' + el.id);
     return el instanceof HTMLTextAreaElement ? !el.disabled && !el.readOnly : el.isContentEditable && el.getAttribute('role') !== 'combobox';
   }
   function editorFor(target) {
+    const docsEditor = docs()?.editorFor(target);
+    if (docsEditor !== undefined) return docsEditor;
     if (!(target instanceof HTMLElement)) return null;
     if (isPlain(target)) return eligible(target) ? target : null;
     let el = target.closest('[contenteditable]');
@@ -16,6 +21,7 @@
     return eligible(el) ? el : null;
   }
   function snapshot(el) {
+    if (docs()?.isEditor(el)) return docs().snapshot(el);
     if (isPlain(el)) {
       if (el.selectionStart == null || el.selectionStart !== el.selectionEnd) return null;
       return { text: el.value, before: el.value.slice(0, el.selectionStart), after: el.value.slice(el.selectionEnd), offset: el.selectionStart };
@@ -94,6 +100,7 @@
     return { left: rect.left, top: rect.top, height: rect.height, style: scaledStyle(css, scale), bounds: panel.getBoundingClientRect() };
   }
   function caret(el, snap) {
+    if (snap?.docs) return docs().caret(el, snap);
     const painted = wordCaret(el, snap);
     if (painted) return painted;
     // During a canvas repaint/blink there may be no measurable painted caret.
@@ -134,6 +141,7 @@
       height: (r.height || parseFloat(style.fontSize) * 1.4) * scaleY, style: scaledStyle(style, scaleX, scaleY) };
   }
   function insert(el, suffix) {
+    if (docs()?.isEditor(el)) return docs().insert(el, suffix);
     const before = new InputEvent('beforeinput', { bubbles: true, cancelable: true, inputType: 'insertText', data: suffix });
     if (!el.dispatchEvent(before)) return false;
     // Native editing preserves undo and editor integrations where supported.
@@ -147,5 +155,7 @@
     el.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: suffix }));
     return true;
   }
-  root.TyperEditor = { eligible, editorFor, snapshot, caret, insert };
+  const title = el => docs()?.isEditor(el) ? docs().title() : '';
+  const attach = (listen, changed) => docs()?.attach(listen, changed);
+  root.TyperEditor = { eligible, editorFor, snapshot, caret, insert, title, attach };
 })(globalThis);

@@ -11,12 +11,12 @@ async function contentHarness(cloudEnabled = true, options = {}) {
   let title = 'Vectors';
   const active = { getAttribute: () => title, closest: () => null };
   const node = () => ({ style: {}, textContent: '' });
-  const host = { dataset: {}, style: {}, setAttribute() {}, attachShadow: () => ({ adoptedStyleSheets: [], querySelector: node }) };
+  const host = { dataset: {}, style: {}, setAttribute() {}, attachShadow: () => ({ adoptedStyleSheets: [], append() {} }) };
   const settings = { enabled: true, threshold: .78, cloud: cloudEnabled, excluded: [] };
   let settingsResponse = options.initialResponse ?? { settings, topHostname: 'example.com' };
   class Engine { setRanks(terms) { rankingUpdates.push([...terms]); } }
   const document = {
-      activeElement: active, hidden: false, title: 'Vectors', documentElement: { append() {} }, createElement: () => host,
+      activeElement: active, hidden: false, title: 'Vectors', documentElement: { append() {} }, createElement: tag => tag === 'div' ? host : node(),
       addEventListener: (name, listener) => listeners.set(name, listener)
   };
   const requests = [];

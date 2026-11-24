@@ -15,15 +15,17 @@
   const sheet = new CSSStyleSheet();
   sheet.replaceSync(':host{pointer-events:none}.ghost{position:fixed;color:#7a7f89;white-space:pre;overflow:hidden;pointer-events:none}.hint{position:fixed;background:#f4f6f9;color:#4b5563;border:1px solid #dce1e8;border-radius:5px;padding:1px 5px;font:11px/18px system-ui;pointer-events:none}');
   shadow.adoptedStyleSheets = [sheet];
-  shadow.innerHTML = '<span class="ghost"></span><span class="hint">Tab</span>';
-  const ghost = shadow.querySelector('.ghost'), hint = shadow.querySelector('.hint');
+  // Build nodes directly. Pages such as Google Docs enforce Trusted Types for innerHTML.
+  const ghost = document.createElement('span'), hint = document.createElement('span');
+  ghost.className = 'ghost'; hint.className = 'hint'; hint.textContent = 'Tab';
+  shadow.append(ghost, hint);
   document.documentElement.append(host);
   const extensionContext = typeof chrome !== 'undefined' && chrome.runtime?.id;
   let topHostname = location.hostname, contextReady = !extensionContext;
   const allowed = () => contextReady && settings.enabled && !settings.excluded.includes(location.hostname) && !settings.excluded.includes(topHostname) && !document.hidden;
   const hide = () => { suggestion = null; ghost.textContent = ''; hint.style.display = 'none'; };
   hide();
-  const currentTitle = el => (el.getAttribute('data-typer-title') || el.closest('article,main,form')?.querySelector('h1,h2')?.textContent || document.title).slice(0, 300);
+  const currentTitle = el => (E.title?.(el) || el.getAttribute('data-typer-title') || el.closest('article,main,form')?.querySelector('h1,h2')?.textContent || document.title).slice(0, 300);
   function rebuild(snap) {
     indexedText = snap.text.slice(0, 30000); title = currentTitle(active);
     engine.index(indexedText, title, snap.before.length); engine.setRanks(ranks); lastIndex = performance.now();
@@ -91,30 +93,36 @@
     engine = new TyperEngine(); hide(); clearTimeout(cloudTimer); clearTimeout(rebuildTimer);
     if (active) { schedule(); cloudTimer = setTimeout(cloud, 1800); }
   }
-  document.addEventListener('focusin', e => focus(e.target), true);
-  document.addEventListener('focusout', () => { hide(); clearTimeout(cloudTimer); }, true);
-  document.addEventListener('input', e => {
-    if (!allowed()) return hide();
-    const editor = E.editorFor(e.target); if (!editor) return;
-    if (editor !== active) focus(e.target);
-    dismissed = ''; cloudFailures = 0; schedule(); clearTimeout(cloudTimer); cloudTimer = setTimeout(cloud, 1800);
-  }, true);
-  document.addEventListener('keydown', e => {
-    if (E.editorFor(e.target) !== active || !allowed() || composing || e.isComposing) return;
-    if (e.key === 'Escape' && suggestion) { dismissed = signature; hide(); return; }
-    if (e.key === 'Tab' && !e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && suggestion) {
-      const snap = E.snapshot(active);
-      if (!snap || snap.before + '\u0000' + snap.after !== signature) return hide();
-      const suffix = suggestion.suffix;
-      // Consume Tab only after native insertion succeeds.
-      if (E.insert(active, suffix)) { e.preventDefault(); e.stopImmediatePropagation(); hide(); dismissed = ''; schedule(); }
-    } else if (['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End','PageUp','PageDown'].includes(e.key)) { hide(); schedule(); }
-  }, true);
-  document.addEventListener('compositionstart', () => { composing = true; hide(); clearTimeout(cloudTimer); }, true);
-  document.addEventListener('compositionend', () => {
-    composing = false; schedule(); clearTimeout(cloudTimer);
-    if (active && allowed() && settings.cloud) cloudTimer = setTimeout(cloud, 1800);
-  }, true);
+  // Editors such as Google Docs take keys in a separate same-origin frame, so the
+  // same listeners can be attached to more than one document.
+  function listen(doc) {
+    doc.addEventListener('focusin', e => focus(e.target), true);
+    doc.addEventListener('focusout', () => { hide(); clearTimeout(cloudTimer); }, true);
+    doc.addEventListener('input', e => {
+      if (!allowed()) return hide();
+      const editor = E.editorFor(e.target); if (!editor) return;
+      if (editor !== active) focus(e.target);
+      dismissed = ''; cloudFailures = 0; schedule(); clearTimeout(cloudTimer); cloudTimer = setTimeout(cloud, 1800);
+    }, true);
+    doc.addEventListener('keydown', e => {
+      if (E.editorFor(e.target) !== active || !allowed() || composing || e.isComposing) return;
+      if (e.key === 'Escape' && suggestion) { dismissed = signature; hide(); return; }
+      if (e.key === 'Tab' && !e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && suggestion) {
+        const snap = E.snapshot(active);
+        if (!snap || snap.before + '\u0000' + snap.after !== signature) return hide();
+        const suffix = suggestion.suffix;
+        // Consume Tab only after native insertion succeeds.
+        if (E.insert(active, suffix)) { e.preventDefault(); e.stopImmediatePropagation(); hide(); dismissed = ''; schedule(); }
+      } else if (['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End','PageUp','PageDown'].includes(e.key)) { hide(); schedule(); }
+    }, true);
+    doc.addEventListener('compositionstart', () => { composing = true; hide(); clearTimeout(cloudTimer); }, true);
+    doc.addEventListener('compositionend', () => {
+      composing = false; schedule(); clearTimeout(cloudTimer);
+      if (active && allowed() && settings.cloud) cloudTimer = setTimeout(cloud, 1800);
+    }, true);
+  }
+  listen(document);
+  E.attach?.(listen, schedule);
   document.addEventListener('selectionchange', () => {
     const editor = E.editorFor(document.activeElement);
     if (editor !== active) focus(document.activeElement);

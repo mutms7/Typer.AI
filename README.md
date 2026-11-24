@@ -74,7 +74,7 @@ For a manual Chrome or Edge install:
 
 Enable AI ranking in the popup to allow background document excerpts to reach the hosted backend and Gemini. Cloud mode is off by default and requires granting access to the backend. Users don't need their own API key.
 
-The extension supports ordinary text inputs, textareas, and contenteditable editors. Google Docs and canvas-based editors aren't supported. Unpacked installations require manual updates by replacing the files and clicking **Reload** on the extensions page.
+The extension supports ordinary text inputs, textareas, contenteditable editors, and Google Docs. Other canvas-based editors aren't supported. Unpacked installations require manual updates by replacing the files and clicking **Reload** on the extensions page.
 
 ## Run locally
 
@@ -158,7 +158,7 @@ What the submission did on purpose:
 - **Optional access to the backend.** The hosted API is an optional host permission for one exact origin, requested when the user turns on AI ranking. Local completion works without it.
 - **A specific justification for the broad host access.** It says what the content script reads, that password fields are skipped, and that page URLs and browsing history aren't collected.
 - **A hosted test page for the reviewer.** The [reviewer instructions](store/listing.md#reviewer-test-instructions) point to a fixture page with text fields ready to type in, and give the expected result after each step.
-- **Limits stated in the listing.** Google Docs and canvas editors aren't supported, and the description says so.
+- **Limits stated in the listing.** Canvas editors other than Google Docs aren't supported, and the description says so.
 
 The full paperwork is in [`store/listing.md`](store/listing.md): the single purpose statement, each permission justification, the data disclosures, and the reviewer instructions. [`store/copy-audit.md`](store/copy-audit.md) lists the wording changes made before resubmitting.
 

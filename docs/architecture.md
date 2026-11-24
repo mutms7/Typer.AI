@@ -30,6 +30,8 @@ Cloud ranking boosts existing vocabulary and adds closely related terms that hav
 
 The content script listens for focus, input, selection, composition, scroll and resize events. Editor adapters read a selection snapshot and locate the caret. A shadow-root overlay renders gray text without inserting speculative text into the user's document. Tab verifies that the selection still matches the snapshot before insertion. Native editing is preferred to preserve undo and integration with supported editors.
 
+Google Docs paints text onto a canvas and takes keys in an empty contenteditable inside a same-origin input frame, so it has its own adapter (`docs.js`). A main-world script (`docs-annotate.js`) sets `_docs_annotate_canvas_by_ext` at `document_start`, which makes Docs keep opacity-zero SVG rects beside its canvas with each painted line's text and font. The adapter rebuilds visible text from those rects, maps the user's own painted caret (`#kix-current-user-cursor-caret`) to a text offset with canvas text measurement, and accepts a suggestion by dispatching a plain-text paste into the input frame, which Docs applies with the caret's formatting as one undo step. Docs only renders pages near the viewport, so local vocabulary in Docs comes from the visible pages. Suggestions stay hidden while text is selected and between an editing key and Docs' next repaint.
+
 Selections, IME composition, stale snapshots, unsupported layout, paused sites, and loss of focus suppress suggestions. Editor switches increment a generation counter, which rejects late cloud responses from the previous document. Disabling cloud clears ranking weights and cancels pending service-worker fetches.
 
 ## Server boundary
@@ -46,7 +48,7 @@ The free deployment uses Supabase for transactional request counters across back
 
 ## Next steps
 
-Calibrate the heuristic gate on consented evaluation data, measure end-to-end input-to-paint latency across editors, add framework-specific adapters, test accessibility with screen readers, and separately validate Google Docs support before advertising it. Users remain responsible for accepting suggestions and the content of their writing.
+Calibrate the heuristic gate on consented evaluation data, measure end-to-end input-to-paint latency across editors, add framework-specific adapters, test accessibility with screen readers, and keep validating the Google Docs adapter against live Docs, since it depends on Docs' canvas annotations rather than a public API. Users remain responsible for accepting suggestions and the content of their writing.
 
 ## Ranking refresh policy
 

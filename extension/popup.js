@@ -1,4 +1,7 @@
 (async () => {
+  // The slider reads left to right as fewer to more suggestions, so its value runs
+  // opposite to the stored confidence threshold (65 + 96 = 161).
+  const SLIDER_SUM = 161;
   const defaults = { enabled: true, threshold: 0.78, cloud: false, excluded: [] };
   const data = await chrome.storage.local.get('settings');
   const settings = { ...defaults, ...data.settings };
@@ -14,7 +17,7 @@
       if (typeof context?.hostname === 'string' && context.hostname) hostname = context.hostname;
     } catch { /* Restricted pages and tabs without the content script have no site control. */ }
   }
-  enabled.checked = settings.enabled; threshold.value = Math.round(settings.threshold * 100); cloud.checked = settings.cloud;
+  enabled.checked = settings.enabled; threshold.value = SLIDER_SUM - Math.round(settings.threshold * 100); cloud.checked = settings.cloud;
   cloud.disabled = !TYPER_CONFIG.apiUrl;
   if (!TYPER_CONFIG.apiUrl) {
     document.querySelector('#cloud-help').textContent = 'Background AI is not available in this build. Local completion works without it.';
@@ -29,7 +32,7 @@
   }
   async function save(message = 'Settings saved.') { await chrome.storage.local.set({ settings }); display(); status.textContent = message; }
   enabled.addEventListener('change', () => { settings.enabled = enabled.checked; save(settings.enabled ? 'Completions on.' : 'Completions off.'); });
-  threshold.addEventListener('input', () => { settings.threshold = Number(threshold.value) / 100; display(); });
+  threshold.addEventListener('input', () => { settings.threshold = (SLIDER_SUM - Number(threshold.value)) / 100; display(); });
   threshold.addEventListener('change', () => save('Suggestion level saved.'));
   cloud.addEventListener('change', async () => {
     if (cloud.checked) {
