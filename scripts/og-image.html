@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Typer.AI social preview</title>
+<style>
+@font-face{font-family:'DM Sans';src:url('../public/fonts/dm-sans.ttf') format('truetype');font-weight:100 1000}
+:root{--ink:#202638;--muted:#565e6d;--accent:#009b72;--accent-dark:#007f5d;--mint:#edf9f2;--line:#e0e5e3;--ghost:#9aa0aa}
+*{box-sizing:border-box;margin:0}
+html,body{width:1200px;height:627px;overflow:hidden}
+body{background:#fff;color:var(--ink);font-family:'DM Sans',sans-serif;position:relative}
+.band{position:absolute;right:0;top:0;bottom:0;width:470px;background:var(--mint);border-left:1px solid var(--line)}
+.brand{position:absolute;left:72px;top:60px;display:flex;align-items:center;gap:14px;font-size:34px;font-weight:700;letter-spacing:-1.2px}
+.brand img{width:46px;height:46px}
+h1{position:absolute;left:72px;top:176px;font-size:58px;line-height:1.14;font-weight:650;letter-spacing:-2.4px;white-space:nowrap}
+h1 .accent{color:var(--accent)}
+.ghost{color:var(--ghost)}
+.caret{display:inline-block;width:0;height:.8em;border-left:4px solid var(--accent);vertical-align:-.04em;margin:0 1px}
+.lede{position:absolute;left:72px;top:350px;width:560px;font-size:24px;line-height:1.5;color:var(--muted)}
+.cta{position:absolute;left:72px;bottom:58px;display:flex;align-items:center;gap:16px;font-size:20px;color:var(--muted)}
+.pill{background:#00865f;color:#fff;font-weight:650;padding:10px 20px;border-radius:8px}
+.card{position:absolute;right:52px;top:120px;width:372px;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 18px 50px #1d3a2c14;overflow:hidden}
+.card-bar{padding:14px 22px;border-bottom:1px solid var(--line);font-size:15px;font-weight:650;display:flex;gap:7px;align-items:center}
+.dot{width:10px;height:10px;border-radius:50%;background:#d6ddd9}
+.card-body{padding:20px 22px 24px;font-size:19px;line-height:1.65}
+.card-body h2{font-size:21px;font-weight:650;letter-spacing:-.4px;margin-bottom:10px}
+.card-body p{margin-bottom:10px;color:#2d3445}
+.small-caret{display:inline-block;width:0;height:.95em;border-left:2px solid var(--ink);vertical-align:-.12em}
+.keys{position:absolute;right:52px;top:440px;width:372px;display:flex;gap:22px;align-items:center;font-size:17px;color:var(--muted)}
+kbd{font:600 16px 'DM Sans',sans-serif;background:#fff;border:1px solid #c5cdd2;box-shadow:0 3px 0 #dfe5e8;border-radius:7px;padding:4px 12px;color:var(--ink);margin-right:8px}
+kbd.tab{border-color:var(--accent);color:var(--accent-dark)}
+</style>
+</head>
+<body>
+  <div class="band"></div>
+  <div class="brand"><img src="../public/favicon.svg" alt="">typer.ai</div>
+  <h1>Keep the thought.<br><span class="accent">Skip the rep</span><span class="caret"></span><span class="ghost">eated typing.</span></h1>
+  <p class="lede">Free Chrome and Edge extension that finishes the words you keep typing, so your notes can keep up with your thinking.</p>
+  <div class="cta"><span class="pill">Try the live demo</span><span>No account needed</span></div>
+  <div class="card">
+    <div class="card-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span>&nbsp;Lecture notes</div>
+    <div class="card-body">
+      <h2>Eigenvalues and eigenvectors</h2>
+      <p>An eigenvector keeps its direction when the matrix is applied.</p>
+      <p>It scales by the eig<span class="small-caret"></span><span class="ghost">envalue</span></p>
+    </div>
+  </div>
+  <div class="keys"><span><kbd class="tab">Tab</kbd>accept</span><span><kbd>Esc</kbd>dismiss</span></div>
+</body>
+</html>
